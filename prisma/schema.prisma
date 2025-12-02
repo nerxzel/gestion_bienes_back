@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Bien {
+  id               Int       @id @default(autoincrement())
+  codigoInventario String    @unique
+  nombre           String  
+  descripcionLarga String
+
+  valor            Float     
+  costoAdquisicion Float
+  valorResidual    Float     @default(0)
+  condicion        String    @default("Alta") 
+  isDeleted        Boolean   @default(false)
+  fechaIngreso     DateTime
+  fechaResolucion  DateTime?
+  nroResolucion    String?
+  ultimaDepreciacion DateTime?
+
+  tipoObjeto       String
+  estado           String
+  numSerie         String?
+  color            String
+  cantidadPieza    Int?
+  largo            Float?
+  alto             Float?
+  ancho            Float?
+  isla             String?
+  fila             String?
+  columna          String?
+  
+  grupoId          Int?
+  grupo            Grupo?    @relation(fields: [grupoId], references: [id])
+
+  claseId          Int?
+  clase            Clase?    @relation(fields: [claseId], references: [id])
+  
+  subclaseId       Int?
+  subclase         Subclase? @relation(fields: [subclaseId], references: [id])
+
+  marcaId          Int?
+  marca            Marca?    @relation(fields: [marcaId], references: [id])
+  
+  modeloId         Int?
+  modelo           Modelo?   @relation(fields: [modeloId], references: [id])
+
+  ubicacionId      Int?
+  ubicacion        Ubicacion? @relation(fields: [ubicacionId], references: [id])
+  
+  unidadMedidaId   Int?
+  unidadMedida     UnidadMedida? @relation(fields: [unidadMedidaId], references: [id])
+  
+  responsableId    Int?
+  responsable      Responsable? @relation(fields: [responsableId], references: [id])
+
+  @@index([nombre])
+  @@index([codigoInventario])
+  @@map("bienes")
+}
+
+model Grupo {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+  vidaUtil Int
+
+  clases Clase[]
+  subclases Subclase[]
+  bienes Bien[]
+
+  @@map("grupos")
+}
+
+model Clase {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  grupoId Int
+  grupo Grupo @relation(fields: [grupoId], references: [id])
+
+  subclases Subclase[]
+  bienes Bien[]
+
+  @@map("clases")
+}
+
+model Subclase {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  claseId Int
+  clases Clase @relation(fields: [claseId], references: [id])
+
+  grupoId Int
+  grupo Grupo @relation(fields: [grupoId], references: [id])
+
+  bienes Bien[]
+
+  @@map("subclases")
+}
+
+model Marca {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  modelos Modelo[]
+  bienes Bien[]
+
+  @@map("marcas")
+}
+
+model Modelo {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  marcaId Int
+  marca Marca @relation(fields: [marcaId], references: [id])
+
+  bienes Bien[]
+
+  @@map("modelos")
+}
+
+model Ubicacion {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  bienes Bien[]
+
+  @@map("ubicaciones")
+}
+
+model UnidadMedida {
+  id    Int     @id @default(autoincrement())
+  nombre String  @unique
+
+  bienes Bien[]
+
+  @@map("unidad_medidas")
+}
+
+model Responsable {
+  id    Int     @id @default(autoincrement())
+  rut String  @unique
+  nombre String  @unique
+  cargo String
+  estado String @default("Activo")
+
+  bienes Bien[]
+
+  @@map("responsables")
+}
