@@ -1,6 +1,6 @@
 import marcaService from "../services/marca.service.js";
 
-// GET /api/marcas/
+// GET /api/marca/
 const findAllActives = async (req, res, next) => {
     try {
         const marcas = await marcaService.getAllActiveMarcas();
@@ -10,7 +10,7 @@ const findAllActives = async (req, res, next) => {
     }
 };
 
-// GET /api/marcas/all
+// GET /api/marca/all
 const findAll = async (req, res, next) => {
     try {
         const marcas = await marcaService.getAllMarcas();
@@ -20,7 +20,7 @@ const findAll = async (req, res, next) => {
     }
 };
 
-// GET /api/marcas/:id
+// GET /api/marca/:id
 const findOneById = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -32,7 +32,7 @@ const findOneById = async (req, res, next) => {
     }
 };
 
-// POST /api/marcas/
+// POST /api/marca/
 const createOne = async (req, res, next) => {
     try {
         const newMarca = await marcaService.createMarca(req.body);
@@ -42,7 +42,7 @@ const createOne = async (req, res, next) => {
     }
 };
 
-// PUT /api/marcas/:id
+// PUT /api/marca/:id
 const updateOne = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -53,7 +53,7 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/marcas/:id
+// DELETE /api/marca/:id
 const softDelete = async (req, res, next) => {
     try {
         const { id } = req.params;
