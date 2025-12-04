@@ -11,11 +11,20 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Grupos routes
-app.use('/api/grupos', grupoRoutes);
+// Grupo routes
+app.use('/api/grupo', grupoRoutes);
 
-// Marcas routes
-app.use('/api/marcas', marcaRoutes);
+// Marca routes
+app.use('/api/marca', marcaRoutes);
+
+// Ubicacion routes
+app.use('/api/ubicacion', ubicacionRoutes);
+
+// UnidadMedida routes
+app.use('/api/unidadMedida', unidadMedidaRoutes);
+
+// Responsable routes
+app.use('/api/responsable', responsableRoutes);
 
 // Test routes
 app.get('/', (req, res) => {

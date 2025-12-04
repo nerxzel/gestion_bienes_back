@@ -1,26 +1,26 @@
 import grupoService from "../services/grupo.service.js";
 
-// GET /api/grupos/
+// GET /api/grupo/
 const findAllActives = async (req, res, next) => {
     try {
-        const grupos = await grupoService.getAllActiveGrupos();
+        const grupos = await grupoService.getAllActiveGrupo();
         res.status(200).json(grupos);
     } catch (error) {
         next(error);
     }
 };
 
-// GET /api/grupos/all
+// GET /api/grupo/all
 const findAll = async (req, res, next) => {
     try {
-        const grupos = await grupoService.getAllGrupos();
+        const grupos = await grupoService.getAllGrupo();
         res.status(200).json(grupos);
     } catch (error) {
         next(error);
     }
 };
 
-// GET /api/grupos/:id
+// GET /api/grupo/:id
 const findOneById = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -32,7 +32,7 @@ const findOneById = async (req, res, next) => {
     }
 };
 
-// POST /api/grupos/
+// POST /api/grupo/
 const createOne = async (req, res, next) => {
     try {
         const newGrupo = await grupoService.createGrupo(req.body);
@@ -42,7 +42,7 @@ const createOne = async (req, res, next) => {
     }
 };
 
-// PUT /api/grupos/:id
+// PUT /api/grupo/:id
 const updateOne = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -53,7 +53,7 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/grupos/:id
+// DELETE /api/grupo/:id
 const softDelete = async (req, res, next) => {
     try {
         const { id } = req.params;
