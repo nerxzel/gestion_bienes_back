@@ -27,6 +27,15 @@ const getClaseById = async (id) => {
 
 const createClase = async (data) => {
 
+    if (data.grupoId) {
+        const grupoExists = await prisma.grupo.findUnique({
+            where: { id: parseInt(data.grupoId) }
+        });
+        if (!grupoExists || grupoExists.isDeleted) {
+            throw new NotFoundError("Este grupo no existe o ya fue eliminado");
+        }
+    }
+
     const duplicatedClase = await prisma.clase.findFirst({
         where: { nombre: data.nombre, isDeleted: false }
     });
@@ -46,6 +55,15 @@ const createClase = async (data) => {
 
 const updateClase = async (id, data) => {
     const idInt = parseInt(id);
+
+    if (data.grupoId) {
+        const grupoExists = await prisma.grupo.findUnique({
+            where: { id: parseInt(data.grupoId) }
+        });
+        if (!grupoExists || grupoExists.isDeleted) {
+            throw new NotFoundError("Este grupo no existe o ya fue eliminado");
+        }
+    }
 
     const claseExists = await prisma.clase.findUnique({
         where: { id: idInt }
@@ -83,11 +101,11 @@ const softDeleteClase = async (id) => {
         throw new ConflictError("Esta clase tiene bienes asociados activos");
     }
 
-    const relatedClase = await prisma.clase.count({
-        where: { grupoId: idInt, isDeleted: false }
+    const relatedSubclase = await prisma.subclase.count({
+        where: { claseId: idInt, isDeleted: false }
     });
-    if (relatedClase > 0) {
-        throw new ConflictError("Esta clase tiene bienes asociados activos");
+    if (relatedSubclase > 0) {
+        throw new ConflictError("Esta clase tiene subclases asociadas activas");
     }
 
     const deletedClase = await prisma.clase.update({

@@ -7,6 +7,7 @@ import ubicacionRoutes from './src/routes/ubicacion.routes.js';
 import unidadMedidaRoutes from './src/routes/unidadMedida.routes.js';
 import responsableRoutes from './src/routes/responsable.routes.js';
 import claseRoutes from './src/routes/clase.routes.js';
+import subclaseRoutes from './src/routes/subclase.routes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,6 +21,9 @@ app.use('/api/grupo', grupoRoutes);
 
 // Clase routes
 app.use('/api/clase', claseRoutes);
+
+// Subclase routes
+app.use('/api/subclase', subclaseRoutes);
 
 // Marca routes
 app.use('/api/marca', marcaRoutes);
