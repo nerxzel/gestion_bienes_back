@@ -1,16 +1,16 @@
 import prisma from "../config/prisma.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
-const getAllUnidadMedidas = async () => {
-    const unidadMedidas = await prisma.unidadMedida.findMany();
-    return unidadMedidas;
+const getAllUnidadesMedida = async () => {
+    const unidadesMedida = await prisma.unidadMedida.findMany();
+    return unidadesMedida;
 }
 
-const getAllActiveUnidadMedidas = async () => {
-    const unidadMedidas = await prisma.unidadMedida.findMany({
+const getAllActiveUnidadesMedida = async () => {
+    const unidadesMedida = await prisma.unidadMedida.findMany({
         where: { isDeleted: false }
     });
-    return unidadMedidas;
+    return unidadesMedida;
 }
 
 const getUnidadMedidaById = async (id) => {
@@ -91,8 +91,8 @@ const softDeleteUnidadMedida = async (id) => {
 
 export default {
     createUnidadMedida,
-    getAllUnidadMedidas,
-    getAllActiveUnidadMedidas,
+    getAllUnidadesMedida,
+    getAllActiveUnidadesMedida,
     getUnidadMedidaById,
     updateUnidadMedida,
     softDeleteUnidadMedida

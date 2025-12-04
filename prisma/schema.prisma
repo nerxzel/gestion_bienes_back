@@ -151,6 +151,8 @@ model UnidadMedida {
   id    Int     @id @default(autoincrement())
   nombre String  @unique
 
+  isDeleted Boolean @default(false)
+
   bienes Bien[]
 
   @@map("unidad_medidas")

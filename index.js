@@ -5,6 +5,7 @@ import grupoRoutes from './src/routes/grupo.routes.js';
 import marcaRoutes from './src/routes/marca.routes.js';
 import ubicacionRoutes from './src/routes/ubicacion.routes.js';
 import unidadMedidaRoutes from './src/routes/unidadMedida.routes.js';
+import responsableRoutes from './src/routes/responsable.routes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -24,6 +25,9 @@ app.use('/api/ubicacion', ubicacionRoutes);
 
 // UnidadMedida routes
 app.use('/api/unidadMedida', unidadMedidaRoutes);
+
+// Responsable routes
+app.use('/api/responsable', responsableRoutes);
 
 // Test routes
 app.get('/', (req, res) => {
