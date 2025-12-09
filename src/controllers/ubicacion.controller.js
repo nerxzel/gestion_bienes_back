@@ -1,16 +1,6 @@
 import ubicacionService from "../services/ubicacion.service.js";
 
 // GET /api/ubicacion/
-const findAllActives = async (req, res, next) => {
-    try {
-        const ubicaciones = await ubicacionService.getAllActiveUbicaciones();
-        res.status(200).json(ubicaciones);
-    } catch (error) {
-        next(error);
-    }
-};
-
-// GET /api/ubicacion/all
 const findAll = async (req, res, next) => {
     try {
         const ubicaciones = await ubicacionService.getAllUbicaciones();
@@ -53,22 +43,9 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/ubicacion/:id
-const softDelete = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await ubicacionService.softDeleteUbicacion(id);
-        res.status(200).json({ message: "Ubicacion eliminada correctamente" });
-    } catch (error) {
-        next(error);
-    }
-};
-
 export default {
-    findAllActives,
     findAll,
     findOneById,
     createOne,
-    updateOne,
-    softDelete
+    updateOne
 }

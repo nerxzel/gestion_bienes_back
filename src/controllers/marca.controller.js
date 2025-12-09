@@ -1,16 +1,6 @@
 import marcaService from "../services/marca.service.js";
 
 // GET /api/marca/
-const findAllActives = async (req, res, next) => {
-    try {
-        const marcas = await marcaService.getAllActiveMarcas();
-        res.status(200).json(marcas);
-    } catch (error) {
-        next(error);
-    }
-};
-
-// GET /api/marca/all
 const findAll = async (req, res, next) => {
     try {
         const marcas = await marcaService.getAllMarcas();
@@ -53,22 +43,9 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/marca/:id
-const softDelete = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await marcaService.softDeleteMarca(id);
-        res.status(200).json({ message: "Marca eliminada correctamente" });
-    } catch (error) {
-        next(error);
-    }
-};
-
 export default {
-    findAllActives,
     findAll,
     findOneById,
     createOne,
-    updateOne,
-    softDelete
+    updateOne
 }

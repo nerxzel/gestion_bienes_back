@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { parseAndValidateId, trimAndCapitalize } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllModelos = async () => {
@@ -6,121 +7,113 @@ const getAllModelos = async () => {
     return modelos;
 }
 
-const getAllActiveModelos = async () => {
-    const modelos = await prisma.modelo.findMany({
-        where: { isDeleted: false }
-    });
-    return modelos;
-}
-
 const getModeloById = async (id) => {
+    const idInt = parseAndValidateId(id);
     const modelo = await prisma.modelo.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: idInt }
     });
 
-    if (!modelo || modelo.isDeleted) {
-        throw new NotFoundError("Este modelo no existe o ya fue eliminado");
+    if (!modelo) {
+        throw new NotFoundError("Este modelo no existe");
     }
 
     return modelo;
 }
 
-const createClase = async (data) => {
-
-    if (data.grupoId) {
-        const grupoExists = await prisma.grupo.findUnique({
-            where: { id: parseInt(data.grupoId) }
-        });
-        if (!grupoExists || grupoExists.isDeleted) {
-            throw new NotFoundError("Este grupo no existe o ya fue eliminado");
-        }
+const createModelo = async (data) => {
+    if (!data.nombre) {
+        throw new BadRequestError("El nombre es obligatorio");
     }
 
-    const duplicatedClase = await prisma.clase.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+    if (!data.marcaId) {
+        throw new BadRequestError("La marca es obligatoria");
+    }
+
+    const capitalizedNombre = trimAndCapitalize(data.nombre);
+    const marcaIdInt = parseInt(data.marcaId);
+
+    const parentMarcaExists = await prisma.marca.findUnique({
+        where: { id: marcaIdInt }
+    });
+    if (!parentMarcaExists) {
+        throw new NotFoundError("Esta marca no existe");
+    }
+
+    const duplicatedModelo = await prisma.modelo.findFirst({
+        where: { nombre: capitalizedNombre, marcaId: marcaIdInt }
     });
 
-    if (duplicatedClase) {
-        throw new ConflictError("Esta clase ya existe");
+    if (duplicatedModelo) {
+        throw new ConflictError("Este modelo ya existe en esta marca");
     }
 
-    const newClase = await prisma.clase.create({
+    const newModelo = await prisma.modelo.create({
         data: {
-            nombre: data.nombre,
-            grupoId: data.grupoId,
+            nombre: capitalizedNombre,
+            marcaId: marcaIdInt,
         }
     });
-    return newClase;
+    return newModelo;
 }
 
-const updateClase = async (id, data) => {
-    const idInt = parseInt(id);
+const updateModelo = async (id, data) => {
+    const idInt = parseAndValidateId(id);
+    const payloadToUpdate = {};
 
-    if (data.grupoId) {
-        const grupoExists = await prisma.grupo.findUnique({
-            where: { id: parseInt(data.grupoId) }
+    if (data.nombre) {
+        const capitalizedNombre = trimAndCapitalize(data.nombre);
+        payloadToUpdate.nombre = capitalizedNombre;
+    }
+
+    if (data.marcaId) {
+        const marcaIdInt = parseAndValidateId(data.marcaId)
+        payloadToUpdate.marcaId = marcaIdInt;
+
+        const parentMarcaExists = await prisma.marca.findUnique({
+            where: { id: marcaIdInt }
         });
-        if (!grupoExists || grupoExists.isDeleted) {
-            throw new NotFoundError("Este grupo no existe o ya fue eliminado");
+        if (!parentMarcaExists) {
+            throw new NotFoundError("Esta marca no existe");
         }
     }
 
-    const claseExists = await prisma.clase.findUnique({
+    const modeloExists = await prisma.modelo.findUnique({
         where: { id: idInt }
     });
 
-    if (!claseExists || claseExists.isDeleted) {
-        throw new NotFoundError("Esta clase no existe o ya fue eliminada");
+    if (!modeloExists) {
+        throw new NotFoundError("Este modelo no existe");
     }
 
-    const clase = await prisma.clase.update({
-        where: { id: parseInt(id) },
-        data: {
-            nombre: data.nombre,
-            grupoId: data.grupoId,
+    if (Object.keys(payloadToUpdate).length !== 0) {
+        const newNombre = payloadToUpdate.nombre || modeloExists.nombre;
+        const newMarcaId = payloadToUpdate.marcaId || modeloExists.marcaId;
+
+        const duplicatedModelo = await prisma.modelo.findFirst({
+            where: {
+                nombre: newNombre,
+                marcaId: newMarcaId,
+                NOT: { id: idInt },
+            }
+        });
+
+        if (duplicatedModelo) {
+            throw new ConflictError("Este modelo ya existe en esta marca");
         }
-    });
-    return clase;
-}
 
-// Not sure if this will be implemented in the future
-const softDeleteClase = async (id) => {
-    const idInt = parseInt(id);
-
-    const claseExists = await prisma.clase.findUnique({
-        where: { id: idInt }
-    });
-    if (!claseExists || claseExists.isDeleted) {
-        throw new NotFoundError("Esta clase no existe o ya fue eliminada");
+        const updatedModelo = await prisma.modelo.update({
+            where: { id: idInt },
+            data: payloadToUpdate,
+        });
+        return updatedModelo;
     }
 
-    const relatedBien = await prisma.bien.count({
-        where: { claseId: idInt, isDeleted: false }
-    });
-    if (relatedBien > 0) {
-        throw new ConflictError("Esta clase tiene bienes asociados activos");
-    }
-
-    const relatedSubclase = await prisma.subclase.count({
-        where: { claseId: idInt, isDeleted: false }
-    });
-    if (relatedSubclase > 0) {
-        throw new ConflictError("Esta clase tiene subclases asociadas activas");
-    }
-
-    const deletedClase = await prisma.clase.update({
-        where: { id: idInt },
-        data: { isDeleted: true }
-    });
-
-    return deletedClase;
+    return modeloExists;
 }
 
 export default {
-    createClase,
-    getAllClases,
-    getAllActiveClases,
-    getClaseById,
-    updateClase,
-    softDeleteClase
+    createModelo,
+    getAllModelos,
+    getModeloById,
+    updateModelo,
 }

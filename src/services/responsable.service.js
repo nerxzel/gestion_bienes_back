@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { trimAndCapitalize, parseAndValidateId, validateRut } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllResponsables = async () => {
@@ -6,29 +7,35 @@ const getAllResponsables = async () => {
     return responsables;
 }
 
-const getAllActiveResponsables = async () => {
-    const responsables = await prisma.responsable.findMany({
-        where: { isDeleted: false }
-    });
-    return responsables;
-}
-
 const getResponsableById = async (id) => {
+    const idInt = parseAndValidateId(id);
     const responsable = await prisma.responsable.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: idInt }
     });
 
-    if (!responsable || responsable.isDeleted) {
-        throw new NotFoundError("Este responsable no existe o ya fue eliminado");
+    if (!responsable) {
+        throw new NotFoundError("Este responsable no existe");
     }
 
     return responsable;
 }
 
 const createResponsable = async (data) => {
+    const validatedRut = validateRut(data.rut);
+
+    if (!data.nombre) {
+        throw new BadRequestError("El nombre es obligatorio");
+    }
+
+    if (!data.cargo) {
+        throw new BadRequestError("El cargo es obligatorio");
+    }
+
+    const normalizedNombre = trimAndCapitalize(data.nombre);
+    const normalizedCargo = trimAndCapitalize(data.cargo);
 
     const duplicatedResponsable = await prisma.responsable.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+        where: { rut: validatedRut }
     });
 
     if (duplicatedResponsable) {
@@ -37,67 +44,65 @@ const createResponsable = async (data) => {
 
     const newResponsable = await prisma.responsable.create({
         data: {
-            rut: data.rut,
-            nombre: data.nombre,
-            cargo: data.cargo,
+            rut: validatedRut,
+            nombre: normalizedNombre,
+            cargo: normalizedCargo,
         }
     });
     return newResponsable;
 }
 
 const updateResponsable = async (id, data) => {
-    const idInt = parseInt(id);
+    const idInt = parseAndValidateId(id);
+    const payloadToUpdate = {};
+
+    if (data.nombre) {
+        const normalizedNombre = trimAndCapitalize(data.nombre);
+        payloadToUpdate.nombre = normalizedNombre;
+    }
+
+    if (data.cargo) {
+        const normalizedCargo = trimAndCapitalize(data.cargo);
+        payloadToUpdate.cargo = normalizedCargo;
+    }
+
+    if (data.rut) {
+        const validatedRut = validateRut(data.rut);
+        payloadToUpdate.rut = validatedRut;
+    }
 
     const responsableExists = await prisma.responsable.findUnique({
         where: { id: idInt }
     });
 
-    if (!responsableExists || responsableExists.isDeleted) {
-        throw new NotFoundError("Este responsable no existe o ya fue eliminado");
+    if (!responsableExists) {
+        throw new NotFoundError("Este responsable no existe");
+    }
+
+    if (Object.keys(payloadToUpdate).length === 0) {
+        return responsableExists;
+    }
+
+    if (payloadToUpdate.rut) {
+        const duplicatedResponsable = await prisma.responsable.findFirst({
+            where: { rut: payloadToUpdate.rut, NOT: { id: idInt } }
+        });
+
+        if (duplicatedResponsable) {
+            throw new ConflictError("Este responsable ya existe");
+        }
     }
 
     const responsable = await prisma.responsable.update({
-        where: { id: parseInt(id) },
-        data: {
-            rut: data.rut,
-            nombre: data.nombre,
-            cargo: data.cargo,
-        }
+        where: { id: idInt },
+        data: payloadToUpdate,
     });
     return responsable;
-}
-
-// Not sure if this will be implemented in the future
-const softDeleteResponsable = async (id) => {
-    const idInt = parseInt(id);
-
-    const responsableExists = await prisma.responsable.findUnique({
-        where: { id: idInt }
-    });
-    if (!responsableExists || responsableExists.isDeleted) {
-        throw new NotFoundError("Este responsable no existe o ya fue eliminado");
-    }
-
-    const relatedBien = await prisma.bien.count({
-        where: { responsableId: idInt, isDeleted: false }
-    });
-    if (relatedBien > 0) {
-        throw new ConflictError("Este responsable tiene bienes asociados activos");
-    }
-
-    const deletedResponsable = await prisma.responsable.update({
-        where: { id: idInt },
-        data: { isDeleted: true }
-    });
-
-    return deletedResponsable;
 }
 
 export default {
     createResponsable,
     getAllResponsables,
-    getAllActiveResponsables,
     getResponsableById,
     updateResponsable,
-    softDeleteResponsable
 }

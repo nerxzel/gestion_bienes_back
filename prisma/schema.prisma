@@ -69,8 +69,6 @@ model Grupo {
   nombre String  @unique
   vidaUtil Int
 
-  isDeleted Boolean @default(false)
-
   clases Clase[]
   subclases Subclase[]
   bienes Bien[]
@@ -81,8 +79,6 @@ model Grupo {
 model Clase {
   id    Int     @id @default(autoincrement())
   nombre String
-
-  isDeleted Boolean @default(false)
 
   grupoId Int
   grupo Grupo @relation(fields: [grupoId], references: [id])
@@ -97,8 +93,6 @@ model Clase {
 model Subclase {
   id    Int     @id @default(autoincrement())
   nombre String
-
-  isDeleted Boolean @default(false)
 
   claseId Int
   clases Clase @relation(fields: [claseId], references: [id])
@@ -116,8 +110,6 @@ model Marca {
   id    Int     @id @default(autoincrement())
   nombre String  @unique
 
-  isDeleted Boolean @default(false)
-
   modelos Modelo[]
   bienes Bien[]
 
@@ -128,21 +120,18 @@ model Modelo {
   id    Int     @id @default(autoincrement())
   nombre String  @unique
 
-  isDeleted Boolean @default(false)
-
   marcaId Int
   marca Marca @relation(fields: [marcaId], references: [id])
 
   bienes Bien[]
 
+  @@unique([nombre, marcaId])
   @@map("modelos")
 }
 
 model Ubicacion {
   id    Int     @id @default(autoincrement())
   nombre String  @unique
-
-  isDeleted Boolean @default(false)
 
   bienes Bien[]
 
@@ -153,8 +142,6 @@ model UnidadMedida {
   id    Int     @id @default(autoincrement())
   nombre String  @unique
 
-  isDeleted Boolean @default(false)
-
   bienes Bien[]
 
   @@map("unidad_medidas")
@@ -163,11 +150,9 @@ model UnidadMedida {
 model Responsable {
   id    Int     @id @default(autoincrement())
   rut String  @unique
-  nombre String  @unique
+  nombre String
   cargo String
   estado String @default("Activo")
-
-  isDeleted Boolean @default(false)
 
   bienes Bien[]
 

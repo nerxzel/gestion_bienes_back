@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllUbicaciones = async () => {
@@ -6,29 +7,28 @@ const getAllUbicaciones = async () => {
     return ubicaciones;
 }
 
-const getAllActiveUbicaciones = async () => {
-    const ubicaciones = await prisma.ubicacion.findMany({
-        where: { isDeleted: false }
-    });
-    return ubicaciones;
-}
-
 const getUbicacionById = async (id) => {
+    const idInt = parseAndValidateId(id);
     const ubicacion = await prisma.ubicacion.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: idInt }
     });
 
-    if (!ubicacion || ubicacion.isDeleted) {
-        throw new NotFoundError("Esta ubicación no existe o ya fue eliminada");
+    if (!ubicacion) {
+        throw new NotFoundError("Esta ubicación no existe");
     }
 
     return ubicacion;
 }
 
 const createUbicacion = async (data) => {
+    if (!data.nombre) {
+        throw new Error("El nombre es obligatorio");
+    }
+
+    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const duplicatedUbicacion = await prisma.ubicacion.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+        where: { nombre: normalizedNombre }
     });
 
     if (duplicatedUbicacion) {
@@ -37,63 +37,45 @@ const createUbicacion = async (data) => {
 
     const newUbicacion = await prisma.ubicacion.create({
         data: {
-            nombre: data.nombre,
+            nombre: normalizedNombre,
         }
     });
     return newUbicacion;
 }
 
 const updateUbicacion = async (id, data) => {
-    const idInt = parseInt(id);
+    const idInt = parseAndValidateId(id);
+
+    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const ubicacionExists = await prisma.ubicacion.findUnique({
         where: { id: idInt }
     });
 
-    if (!ubicacionExists || ubicacionExists.isDeleted) {
-        throw new NotFoundError("Esta ubicacion no existe o ya fue eliminada");
+    if (!ubicacionExists) {
+        throw new NotFoundError("Esta ubicacion no existe");
+    }
+
+    const duplicatedUbicacion = await prisma.ubicacion.findFirst({
+        where: { nombre: normalizedNombre, NOT: { id: idInt } }
+    })
+
+    if (duplicatedUbicacion) {
+        throw new ConflictError("Esta ubicacion ya existe");
     }
 
     const ubicacion = await prisma.ubicacion.update({
-        where: { id: parseInt(id) },
+        where: { id: idInt },
         data: {
-            nombre: data.nombre,
+            nombre: normalizedNombre,
         }
     });
     return ubicacion;
 }
 
-// Not sure if this will be implemented in the future
-const softDeleteUbicacion = async (id) => {
-    const idInt = parseInt(id);
-
-    const ubicacionExists = await prisma.ubicacion.findUnique({
-        where: { id: idInt }
-    });
-    if (!ubicacionExists || ubicacionExists.isDeleted) {
-        throw new NotFoundError("Esta ubicacion no existe o ya fue eliminada");
-    }
-
-    const relatedBien = await prisma.bien.count({
-        where: { ubicacionId: idInt, isDeleted: false }
-    });
-    if (relatedBien > 0) {
-        throw new ConflictError("Esta ubicacion tiene bienes asociados activos");
-    }
-
-    const deletedUbicacion = await prisma.ubicacion.update({
-        where: { id: idInt },
-        data: { isDeleted: true }
-    });
-
-    return deletedUbicacion;
-}
-
 export default {
     createUbicacion,
     getAllUbicaciones,
-    getAllActiveUbicaciones,
     getUbicacionById,
     updateUbicacion,
-    softDeleteUbicacion
 }

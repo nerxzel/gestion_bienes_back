@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllUnidadesMedida = async () => {
@@ -6,29 +7,28 @@ const getAllUnidadesMedida = async () => {
     return unidadesMedida;
 }
 
-const getAllActiveUnidadesMedida = async () => {
-    const unidadesMedida = await prisma.unidadMedida.findMany({
-        where: { isDeleted: false }
-    });
-    return unidadesMedida;
-}
-
 const getUnidadMedidaById = async (id) => {
+    const idInt = parseAndValidateId(id);
     const unidadMedida = await prisma.unidadMedida.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: idInt }
     });
 
-    if (!unidadMedida || unidadMedida.isDeleted) {
-        throw new NotFoundError("Esta unidad de medida no existe o ya fue eliminada");
+    if (!unidadMedida) {
+        throw new NotFoundError("Esta unidad de medida no existe");
     }
 
     return unidadMedida;
 }
 
 const createUnidadMedida = async (data) => {
+    if (!data.nombre) {
+        throw new BadRequestError("El nombre es obligatorio");
+    }
+
+    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const duplicatedUnidadMedida = await prisma.unidadMedida.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+        where: { nombre: normalizedNombre }
     });
 
     if (duplicatedUnidadMedida) {
@@ -37,63 +37,44 @@ const createUnidadMedida = async (data) => {
 
     const newUnidadMedida = await prisma.unidadMedida.create({
         data: {
-            nombre: data.nombre,
+            nombre: normalizedNombre,
         }
     });
     return newUnidadMedida;
 }
 
 const updateUnidadMedida = async (id, data) => {
-    const idInt = parseInt(id);
+    const idInt = parseAndValidateId(id);
+    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const unidadMedidaExists = await prisma.unidadMedida.findUnique({
         where: { id: idInt }
     });
 
-    if (!unidadMedidaExists || unidadMedidaExists.isDeleted) {
-        throw new NotFoundError("Esta unidad de medida no existe o ya fue eliminada");
+    if (!unidadMedidaExists) {
+        throw new NotFoundError("Esta unidad de medida no existe");
+    }
+
+    const duplicatedUnidadMedida = await prisma.unidadMedida.findFirst({
+        where: { nombre: normalizedNombre, NOT: { id: idInt } }
+    })
+
+    if (duplicatedUnidadMedida) {
+        throw new ConflictError("Esta unidad de medida ya existe");
     }
 
     const unidadMedida = await prisma.unidadMedida.update({
-        where: { id: parseInt(id) },
+        where: { id: idInt },
         data: {
-            nombre: data.nombre,
+            nombre: normalizedNombre,
         }
     });
     return unidadMedida;
 }
 
-// Not sure if this will be implemented in the future
-const softDeleteUnidadMedida = async (id) => {
-    const idInt = parseInt(id);
-
-    const unidadMedidaExists = await prisma.unidadMedida.findUnique({
-        where: { id: idInt }
-    });
-    if (!unidadMedidaExists || unidadMedidaExists.isDeleted) {
-        throw new NotFoundError("Esta unidad de medida no existe o ya fue eliminada");
-    }
-
-    const relatedBien = await prisma.bien.count({
-        where: { unidadMedidaId: idInt, isDeleted: false }
-    });
-    if (relatedBien > 0) {
-        throw new ConflictError("Esta unidad de medida tiene bienes asociados activos");
-    }
-
-    const deletedUnidadMedida = await prisma.unidadMedida.update({
-        where: { id: idInt },
-        data: { isDeleted: true }
-    });
-
-    return deletedUnidadMedida;
-}
-
 export default {
     createUnidadMedida,
     getAllUnidadesMedida,
-    getAllActiveUnidadesMedida,
     getUnidadMedidaById,
     updateUnidadMedida,
-    softDeleteUnidadMedida
 }

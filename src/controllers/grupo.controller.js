@@ -1,14 +1,5 @@
 import grupoService from "../services/grupo.service.js";
 
-// GET /api/grupo/
-const findAllActives = async (req, res, next) => {
-    try {
-        const grupos = await grupoService.getAllActiveGrupos();
-        res.status(200).json(grupos);
-    } catch (error) {
-        next(error);
-    }
-};
 
 // GET /api/grupo/all
 const findAll = async (req, res, next) => {
@@ -53,22 +44,10 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/grupo/:id
-const softDelete = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await grupoService.softDeleteGrupo(id);
-        res.status(200).json({ message: "Grupo eliminado correctamente" });
-    } catch (error) {
-        next(error);
-    }
-};
 
 export default {
-    findAllActives,
     findAll,
     findOneById,
     createOne,
     updateOne,
-    softDelete
 }

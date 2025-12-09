@@ -5,7 +5,7 @@ import grupoRoutes from './src/routes/grupo.routes.js';
 import claseRoutes from './src/routes/clase.routes.js';
 import subclaseRoutes from './src/routes/subclase.routes.js';
 import marcaRoutes from './src/routes/marca.routes.js';
-//import modeloRoutes from './src/routes/modelo.routes.js';
+import modeloRoutes from './src/routes/modelo.routes.js';
 import ubicacionRoutes from './src/routes/ubicacion.routes.js';
 import unidadMedidaRoutes from './src/routes/unidadMedida.routes.js';
 import responsableRoutes from './src/routes/responsable.routes.js';
@@ -30,7 +30,7 @@ app.use('/api/subclase', subclaseRoutes);
 app.use('/api/marca', marcaRoutes);
 
 // Modelo routes
-//app.use('/api/modelo', modeloRoutes);
+app.use('/api/modelo', modeloRoutes);
 
 // Ubicacion routes
 app.use('/api/ubicacion', ubicacionRoutes);
