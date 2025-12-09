@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { capitalize } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllGrupos = async () => {
@@ -26,18 +27,36 @@ const getGrupoById = async (id) => {
 }
 
 const createGrupo = async (data) => {
+    if (!data.nombre) {
+        throw new BadRequestError("El nombre es obligatorio");
+    }
+
+    const capitalizedNombre = capitalize(data.nombre);
 
     const duplicatedGrupo = await prisma.grupo.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+        where: { nombre: capitalizedNombre }
     });
 
     if (duplicatedGrupo) {
-        throw new ConflictError("Este grupo ya existe");
+
+        if (!duplicatedGrupo.isDeleted) {
+            throw new ConflictError("Este grupo ya existe");
+        }
+
+        const softDeletedGrupo = await prisma.grupo.update({
+            where: { id: duplicatedGrupo.id },
+            data: {
+                nombre: capitalizedNombre,
+                vidaUtil: parseInt(data.vidaUtil),
+                isDeleted: false
+            }
+        });
+        return softDeletedGrupo;
     }
 
     const newGrupo = await prisma.grupo.create({
         data: {
-            nombre: data.nombre,
+            nombre: capitalizedNombre,
             vidaUtil: parseInt(data.vidaUtil),
         }
     });
@@ -46,6 +65,7 @@ const createGrupo = async (data) => {
 
 const updateGrupo = async (id, data) => {
     const idInt = parseInt(id);
+    const capitalizedNombre = capitalize(data.nombre);
 
     const grupoExists = await prisma.grupo.findUnique({
         where: { id: idInt }
@@ -55,10 +75,24 @@ const updateGrupo = async (id, data) => {
         throw new NotFoundError("Este grupo no existe o ya fue eliminado");
     }
 
+    if (capitalizedNombre && capitalizedNombre !== grupoExists.nombre) {
+        const duplicatedNombre = await prisma.grupo.findFirst({
+            where: {
+                nombre: capitalizedNombre,
+                NOT: { id: idInt }
+            }
+        });
+
+        if (duplicatedNombre) {
+            throw new ConflictError("Este grupo ya existe");
+        }
+    }
+
+
     const grupo = await prisma.grupo.update({
         where: { id: parseInt(id) },
         data: {
-            nombre: data.nombre,
+            nombre: capitalizedNombre,
             vidaUtil: data.vidaUtil ? parseInt(data.vidaUtil) : undefined,
         }
     });

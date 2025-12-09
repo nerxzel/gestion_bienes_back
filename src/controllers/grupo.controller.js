@@ -3,7 +3,7 @@ import grupoService from "../services/grupo.service.js";
 // GET /api/grupo/
 const findAllActives = async (req, res, next) => {
     try {
-        const grupos = await grupoService.getAllActiveGrupo();
+        const grupos = await grupoService.getAllActiveGrupos();
         res.status(200).json(grupos);
     } catch (error) {
         next(error);
@@ -13,7 +13,7 @@ const findAllActives = async (req, res, next) => {
 // GET /api/grupo/all
 const findAll = async (req, res, next) => {
     try {
-        const grupos = await grupoService.getAllGrupo();
+        const grupos = await grupoService.getAllGrupos();
         res.status(200).json(grupos);
     } catch (error) {
         next(error);

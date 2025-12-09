@@ -80,7 +80,7 @@ model Grupo {
 
 model Clase {
   id    Int     @id @default(autoincrement())
-  nombre String  @unique
+  nombre String
 
   isDeleted Boolean @default(false)
 
@@ -90,12 +90,13 @@ model Clase {
   subclases Subclase[]
   bienes Bien[]
 
+  @@unique([nombre, grupoId])
   @@map("clases")
 }
 
 model Subclase {
   id    Int     @id @default(autoincrement())
-  nombre String  @unique
+  nombre String
 
   isDeleted Boolean @default(false)
 
@@ -107,6 +108,7 @@ model Subclase {
 
   bienes Bien[]
 
+  @@unique([nombre, claseId])
   @@map("subclases")
 }
 

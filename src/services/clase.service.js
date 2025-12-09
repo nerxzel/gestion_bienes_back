@@ -1,5 +1,6 @@
 import prisma from "../config/prisma.js";
-import { NotFoundError, ConflictError } from "../utils/app-error.js"
+import { capitalize } from "../utils/utility-methods.js";
+import { NotFoundError, ConflictError, BadRequestError } from "../utils/app-error.js"
 
 const getAllClases = async () => {
     const clases = await prisma.clase.findMany();
@@ -26,28 +27,48 @@ const getClaseById = async (id) => {
 }
 
 const createClase = async (data) => {
+    if (!data.nombre) {
+        throw new BadRequestError("El nombre es obligatorio");
+    }
 
-    if (data.grupoId) {
-        const grupoExists = await prisma.grupo.findUnique({
-            where: { id: parseInt(data.grupoId) }
-        });
-        if (!grupoExists || grupoExists.isDeleted) {
-            throw new NotFoundError("Este grupo no existe o ya fue eliminado");
-        }
+    if (!data.grupoId) {
+        throw new BadRequestError("El grupo es obligatorio");
+    }
+
+    const capitalizedNombre = capitalize(data.nombre);
+    const grupoIdInt = parseInt(data.grupoId);
+
+    const parentGrupoExists = await prisma.grupo.findUnique({
+        where: { id: grupoIdInt }
+    });
+    if (!parentGrupoExists || parentGrupoExists.isDeleted) {
+        throw new NotFoundError("Este grupo no existe o ya fue eliminado");
     }
 
     const duplicatedClase = await prisma.clase.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+        where: { nombre: capitalizedNombre, grupoId: grupoIdInt }
     });
 
     if (duplicatedClase) {
-        throw new ConflictError("Esta clase ya existe");
+
+        if (!duplicatedClase.isDeleted) {
+            throw new ConflictError("Esta clase ya existe en este grupo");
+        }
+
+        const softDeletedClase = await prisma.clase.update({
+            where: { id: duplicatedClase.id },
+            data: {
+                nombre: capitalizedNombre,
+                isDeleted: false
+            }
+        });
+        return softDeletedClase;
     }
 
     const newClase = await prisma.clase.create({
         data: {
-            nombre: data.nombre,
-            grupoId: data.grupoId,
+            nombre: capitalizedNombre,
+            grupoId: grupoIdInt,
         }
     });
     return newClase;
@@ -55,16 +76,30 @@ const createClase = async (data) => {
 
 const updateClase = async (id, data) => {
     const idInt = parseInt(id);
+    const payloadToUpdate = {};
+
+    if (data.nombre) {
+        const capitalizedNombre = capitalize(data.nombre);
+        payloadToUpdate.nombre = capitalizedNombre;
+    }
 
     if (data.grupoId) {
-        const grupoExists = await prisma.grupo.findUnique({
-            where: { id: parseInt(data.grupoId) }
+        const grupoIdInt = parseInt(data.grupoId)
+        payloadToUpdate.grupoId = grupoIdInt;
+
+        const parentGrupoExists = await prisma.grupo.findUnique({
+            where: { id: grupoIdInt }
         });
-        if (!grupoExists || grupoExists.isDeleted) {
+        if (!parentGrupoExists || parentGrupoExists.isDeleted) {
             throw new NotFoundError("Este grupo no existe o ya fue eliminado");
         }
     }
 
+    if (!idInt) {
+        throw new BadRequestError("El id es obligatorio");
+    }
+
+    console.log(payloadToUpdate);
     const claseExists = await prisma.clase.findUnique({
         where: { id: idInt }
     });
@@ -73,14 +108,31 @@ const updateClase = async (id, data) => {
         throw new NotFoundError("Esta clase no existe o ya fue eliminada");
     }
 
-    const clase = await prisma.clase.update({
-        where: { id: parseInt(id) },
-        data: {
-            nombre: data.nombre,
-            grupoId: data.grupoId,
+    if (Object.keys(payloadToUpdate).length !== 0) {
+        const newNombre = payloadToUpdate.nombre || claseExists.nombre;
+        const newGrupoId = payloadToUpdate.grupoId || claseExists.grupoId;
+
+        const duplicatedClase = await prisma.clase.findFirst({
+            where: {
+                nombre: newNombre,
+                grupoId: newGrupoId,
+                NOT: { id: idInt },
+                isDeleted: false
+            }
+        });
+
+        if (duplicatedClase) {
+            throw new ConflictError("Esta clase ya existe en este grupo");
         }
-    });
-    return clase;
+
+        const updatedClase = await prisma.clase.update({
+            where: { id: idInt },
+            data: payloadToUpdate,
+        });
+        return updatedClase;
+    }
+
+    return claseExists;
 }
 
 // Not sure if this will be implemented in the future

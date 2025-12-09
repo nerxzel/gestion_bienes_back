@@ -1,7 +1,7 @@
+
+charts
 node_modules
 logs
-# Keep environment variables out of version control
 .env
-
 /generated/prisma
 
