@@ -1,16 +1,6 @@
 import unidadMedidaService from "../services/unidadMedida.service.js";
 
-// GET /api/unidadMedida
-const findAllActives = async (req, res, next) => {
-    try {
-        const unidadesMedida = await unidadMedidaService.getAllActiveUnidadesMedida();
-        res.status(200).json(unidadesMedida);
-    } catch (error) {
-        next(error);
-    }
-};
-
-// GET /api/unidadMedida/all
+// GET /api/unidadMedida/
 const findAll = async (req, res, next) => {
     try {
         const unidadesMedida = await unidadMedidaService.getAllUnidadesMedida();
@@ -53,22 +43,9 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/unidadMedida/:id
-const softDelete = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await unidadMedidaService.softDeleteUnidadMedida(id);
-        res.status(200).json({ message: "UnidadMedida eliminada correctamente" });
-    } catch (error) {
-        next(error);
-    }
-};
-
 export default {
-    findAllActives,
     findAll,
     findOneById,
     createOne,
     updateOne,
-    softDelete
 }

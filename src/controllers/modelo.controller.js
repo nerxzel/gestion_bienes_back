@@ -1,43 +1,43 @@
-import claseService from "../services/clase.service.js";
+import modeloService from "../services/modelo.service.js";
 
-// GET /api/clase/
+// GET /api/modelo/
 const findAll = async (req, res, next) => {
     try {
-        const clases = await claseService.getAllClases();
-        res.status(200).json(clases);
+        const modelos = await modeloService.getAllModelos();
+        res.status(200).json(modelos);
     } catch (error) {
         next(error);
     }
 };
 
-// GET /api/clase/:id
+// GET /api/modelo/:id
 const findOneById = async (req, res, next) => {
     try {
         const { id } = req.params;
 
-        const clase = await claseService.getClaseById(id);
-        res.status(200).json(clase);
+        const modelo = await modeloService.getModeloById(id);
+        res.status(200).json(modelo);
     } catch (error) {
         next(error);
     }
 };
 
-// POST /api/clase/
+// POST /api/modelo/
 const createOne = async (req, res, next) => {
     try {
-        const newClase = await claseService.createClase(req.body);
-        res.status(201).json(newClase);
+        const newModelo = await modeloService.createModelo(req.body);
+        res.status(201).json(newModelo);
     } catch (error) {
         next(error);
     }
 };
 
-// PUT /api/clase/:id
+// PUT /api/modelo/:id
 const updateOne = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const updatedClase = await claseService.updateClase(id, req.body);
-        res.status(200).json(updatedClase);
+        const updatedModelo = await modeloService.updateModelo(id, req.body);
+        res.status(200).json(updatedModelo);
     } catch (error) {
         next(error);
     }

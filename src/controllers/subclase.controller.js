@@ -1,16 +1,6 @@
 import subclaseService from "../services/subclase.service.js";
 
 // GET /api/subclase/
-const findAllActives = async (req, res, next) => {
-    try {
-        const subclases = await subclaseService.getAllActiveSubclases();
-        res.status(200).json(subclases);
-    } catch (error) {
-        next(error);
-    }
-};
-
-// GET /api/subclase/all
 const findAll = async (req, res, next) => {
     try {
         const subclases = await subclaseService.getAllSubclases();
@@ -53,22 +43,9 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// DELETE /api/subclase/:id
-const softDelete = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        await subclaseService.softDeleteSubclase(id);
-        res.status(200).json({ message: "Subclase eliminada correctamente" });
-    } catch (error) {
-        next(error);
-    }
-};
-
 export default {
-    findAllActives,
     findAll,
     findOneById,
     createOne,
     updateOne,
-    softDelete
 }

@@ -1,34 +1,38 @@
 import prisma from "../config/prisma.js";
-import { NotFoundError, ConflictError } from "../utils/app-error.js"
+import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
+import { NotFoundError, ConflictError, BadRequestError } from "../utils/app-error.js"
 
 const getAllGrupos = async () => {
     const grupos = await prisma.grupo.findMany();
     return grupos;
 }
 
-const getAllActiveGrupos = async () => {
-    const grupos = await prisma.grupo.findMany({
-        where: { isDeleted: false }
-    });
-    return grupos;
-}
-
 const getGrupoById = async (id) => {
+    const idInt = parseAndValidateId(id);
     const grupo = await prisma.grupo.findUnique({
-        where: { id: parseInt(id) }
+        where: { id: idInt }
     });
 
-    if (!grupo || grupo.isDeleted) {
-        throw new NotFoundError("Este grupo no existe o ya fue eliminado");
+    if (!grupo) {
+        throw new NotFoundError("Este grupo no existe");
     }
 
     return grupo;
 }
 
 const createGrupo = async (data) => {
+    if (!data.nombre) {
+        throw new BadRequestError("El nombre es obligatorio");
+    }
+
+    if (!data.vidaUtil) {
+        throw new BadRequestError("La vida útil es obligatoria");
+    }
+
+    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const duplicatedGrupo = await prisma.grupo.findFirst({
-        where: { nombre: data.nombre, isDeleted: false }
+        where: { nombre: normalizedNombre }
     });
 
     if (duplicatedGrupo) {
@@ -37,7 +41,7 @@ const createGrupo = async (data) => {
 
     const newGrupo = await prisma.grupo.create({
         data: {
-            nombre: data.nombre,
+            nombre: normalizedNombre,
             vidaUtil: parseInt(data.vidaUtil),
         }
     });
@@ -45,64 +49,50 @@ const createGrupo = async (data) => {
 }
 
 const updateGrupo = async (id, data) => {
-    const idInt = parseInt(id);
+    const idInt = parseAndValidateId(id);
+    const payloadToUpdate = {};
+
+    if (data.nombre) {
+        const capitalizedNombre = trimAndCapitalize(data.nombre);
+        payloadToUpdate.nombre = capitalizedNombre;
+    }
+
+    if (data.vidaUtil) {
+        payloadToUpdate.vidaUtil = parseInt(data.vidaUtil);
+    }
 
     const grupoExists = await prisma.grupo.findUnique({
         where: { id: idInt }
     });
 
-    if (!grupoExists || grupoExists.isDeleted) {
-        throw new NotFoundError("Este grupo no existe o ya fue eliminado");
+    if (!grupoExists) {
+        throw new NotFoundError("Este grupo no existe");
     }
 
-    const grupo = await prisma.grupo.update({
-        where: { id: parseInt(id) },
-        data: {
-            nombre: data.nombre,
-            vidaUtil: data.vidaUtil ? parseInt(data.vidaUtil) : undefined,
+    if (Object.keys(payloadToUpdate).length === 0) {
+        return grupoExists;
+    }
+
+    if (payloadToUpdate.nombre) {
+        const duplicatedGrupo = await prisma.grupo.findFirst({
+            where: { nombre: payloadToUpdate.nombre, NOT: { id: idInt } }
+        });
+
+        if (duplicatedGrupo) {
+            throw new ConflictError("Este grupo ya existe");
         }
-    });
-    return grupo;
-}
-
-// Not sure if this will be implemented in the future
-const softDeleteGrupo = async (id) => {
-    const idInt = parseInt(id);
-
-    const grupoExists = await prisma.grupo.findUnique({
-        where: { id: idInt }
-    });
-    if (!grupoExists || grupoExists.isDeleted) {
-        throw new NotFoundError("Este grupo no existe o ya fue eliminado");
     }
 
-    const relatedBien = await prisma.bien.count({
-        where: { grupoId: idInt, isDeleted: false }
-    });
-    if (relatedBien > 0) {
-        throw new ConflictError("Este grupo tiene bienes asociados activos");
-    }
-
-    const relatedClase = await prisma.clase.count({
-        where: { grupoId: idInt, isDeleted: false }
-    });
-    if (relatedClase > 0) {
-        throw new ConflictError("Este grupo tiene clases asociadas activas");
-    }
-
-    const deletedGrupo = await prisma.grupo.update({
+    const updatedGrupo = await prisma.grupo.update({
         where: { id: idInt },
-        data: { isDeleted: true }
+        data: payloadToUpdate,
     });
-
-    return deletedGrupo;
+    return updatedGrupo;
 }
 
 export default {
     createGrupo,
     getAllGrupos,
-    getAllActiveGrupos,
     getGrupoById,
     updateGrupo,
-    softDeleteGrupo
 }
