@@ -1,5 +1,5 @@
 import prisma from "../config/prisma.js";
-import { trimAndCapitalize, parseAndValidateId, validateRut } from "../utils/utility-methods.js";
+import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllResponsables = async () => {
@@ -21,21 +21,8 @@ const getResponsableById = async (id) => {
 }
 
 const createResponsable = async (data) => {
-    const validatedRut = validateRut(data.rut);
-
-    if (!data.nombre) {
-        throw new BadRequestError("El nombre es obligatorio");
-    }
-
-    if (!data.cargo) {
-        throw new BadRequestError("El cargo es obligatorio");
-    }
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-    const normalizedCargo = trimAndCapitalize(data.cargo);
-
     const duplicatedResponsable = await prisma.responsable.findFirst({
-        where: { rut: validatedRut }
+        where: { rut: data.rut }
     });
 
     if (duplicatedResponsable) {
@@ -44,9 +31,9 @@ const createResponsable = async (data) => {
 
     const newResponsable = await prisma.responsable.create({
         data: {
-            rut: validatedRut,
-            nombre: normalizedNombre,
-            cargo: normalizedCargo,
+            rut: data.rut,
+            nombre: data.nombre,
+            cargo: data.cargo,
         }
     });
     return newResponsable;
@@ -54,22 +41,6 @@ const createResponsable = async (data) => {
 
 const updateResponsable = async (id, data) => {
     const idInt = parseAndValidateId(id);
-    const payloadToUpdate = {};
-
-    if (data.nombre) {
-        const normalizedNombre = trimAndCapitalize(data.nombre);
-        payloadToUpdate.nombre = normalizedNombre;
-    }
-
-    if (data.cargo) {
-        const normalizedCargo = trimAndCapitalize(data.cargo);
-        payloadToUpdate.cargo = normalizedCargo;
-    }
-
-    if (data.rut) {
-        const validatedRut = validateRut(data.rut);
-        payloadToUpdate.rut = validatedRut;
-    }
 
     const responsableExists = await prisma.responsable.findUnique({
         where: { id: idInt }
@@ -79,13 +50,13 @@ const updateResponsable = async (id, data) => {
         throw new NotFoundError("Este responsable no existe");
     }
 
-    if (Object.keys(payloadToUpdate).length === 0) {
+    if (Object.keys(data).length === 0) {
         return responsableExists;
     }
 
-    if (payloadToUpdate.rut) {
+    if (data.rut) {
         const duplicatedResponsable = await prisma.responsable.findFirst({
-            where: { rut: payloadToUpdate.rut, NOT: { id: idInt } }
+            where: { rut: data.rut, NOT: { id: idInt } }
         });
 
         if (duplicatedResponsable) {
@@ -95,7 +66,7 @@ const updateResponsable = async (id, data) => {
 
     const responsable = await prisma.responsable.update({
         where: { id: idInt },
-        data: payloadToUpdate,
+        data: data,
     });
     return responsable;
 }

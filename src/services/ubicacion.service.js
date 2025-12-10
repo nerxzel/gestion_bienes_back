@@ -1,5 +1,5 @@
 import prisma from "../config/prisma.js";
-import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
+import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllUbicaciones = async () => {
@@ -21,14 +21,8 @@ const getUbicacionById = async (id) => {
 }
 
 const createUbicacion = async (data) => {
-    if (!data.nombre) {
-        throw new Error("El nombre es obligatorio");
-    }
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-
     const duplicatedUbicacion = await prisma.ubicacion.findFirst({
-        where: { nombre: normalizedNombre }
+        where: { nombre: data.nombre }
     });
 
     if (duplicatedUbicacion) {
@@ -37,7 +31,7 @@ const createUbicacion = async (data) => {
 
     const newUbicacion = await prisma.ubicacion.create({
         data: {
-            nombre: normalizedNombre,
+            nombre: data.nombre,
         }
     });
     return newUbicacion;
@@ -45,8 +39,6 @@ const createUbicacion = async (data) => {
 
 const updateUbicacion = async (id, data) => {
     const idInt = parseAndValidateId(id);
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const ubicacionExists = await prisma.ubicacion.findUnique({
         where: { id: idInt }
@@ -57,7 +49,7 @@ const updateUbicacion = async (id, data) => {
     }
 
     const duplicatedUbicacion = await prisma.ubicacion.findFirst({
-        where: { nombre: normalizedNombre, NOT: { id: idInt } }
+        where: { nombre: data.nombre, NOT: { id: idInt } }
     })
 
     if (duplicatedUbicacion) {
@@ -67,7 +59,7 @@ const updateUbicacion = async (id, data) => {
     const ubicacion = await prisma.ubicacion.update({
         where: { id: idInt },
         data: {
-            nombre: normalizedNombre,
+            nombre: data.nombre,
         }
     });
     return ubicacion;

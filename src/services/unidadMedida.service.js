@@ -1,5 +1,5 @@
 import prisma from "../config/prisma.js";
-import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
+import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllUnidadesMedida = async () => {
@@ -21,14 +21,8 @@ const getUnidadMedidaById = async (id) => {
 }
 
 const createUnidadMedida = async (data) => {
-    if (!data.nombre) {
-        throw new BadRequestError("El nombre es obligatorio");
-    }
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-
     const duplicatedUnidadMedida = await prisma.unidadMedida.findFirst({
-        where: { nombre: normalizedNombre }
+        where: { nombre: data.nombre }
     });
 
     if (duplicatedUnidadMedida) {
@@ -37,7 +31,7 @@ const createUnidadMedida = async (data) => {
 
     const newUnidadMedida = await prisma.unidadMedida.create({
         data: {
-            nombre: normalizedNombre,
+            nombre: data.nombre,
         }
     });
     return newUnidadMedida;
@@ -45,7 +39,6 @@ const createUnidadMedida = async (data) => {
 
 const updateUnidadMedida = async (id, data) => {
     const idInt = parseAndValidateId(id);
-    const normalizedNombre = trimAndCapitalize(data.nombre);
 
     const unidadMedidaExists = await prisma.unidadMedida.findUnique({
         where: { id: idInt }
@@ -56,7 +49,7 @@ const updateUnidadMedida = async (id, data) => {
     }
 
     const duplicatedUnidadMedida = await prisma.unidadMedida.findFirst({
-        where: { nombre: normalizedNombre, NOT: { id: idInt } }
+        where: { nombre: data.nombre, NOT: { id: idInt } }
     })
 
     if (duplicatedUnidadMedida) {
@@ -66,7 +59,7 @@ const updateUnidadMedida = async (id, data) => {
     const unidadMedida = await prisma.unidadMedida.update({
         where: { id: idInt },
         data: {
-            nombre: normalizedNombre,
+            nombre: data.nombre,
         }
     });
     return unidadMedida;

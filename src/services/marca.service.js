@@ -1,5 +1,5 @@
 import prisma from "../config/prisma.js";
-import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
+import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllMarcas = async () => {
@@ -21,14 +21,8 @@ const getMarcaById = async (id) => {
 }
 
 const createMarca = async (data) => {
-    if (!data.nombre) {
-        throw new BadRequestError("El nombre es obligatorio");
-    }
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-
     const duplicatedMarca = await prisma.marca.findFirst({
-        where: { nombre: normalizedNombre }
+        where: { nombre: data.nombre }
     });
 
     if (duplicatedMarca) {
@@ -37,7 +31,7 @@ const createMarca = async (data) => {
 
     const newMarca = await prisma.marca.create({
         data: {
-            nombre: normalizedNombre,
+            nombre: data.nombre,
         }
     });
     return newMarca;
@@ -45,8 +39,6 @@ const createMarca = async (data) => {
 
 const updateMarca = async (id, data) => {
     const idInt = parseAndValidateId(id);
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-
     const marcaExists = await prisma.marca.findUnique({
         where: { id: idInt }
     });
@@ -56,7 +48,7 @@ const updateMarca = async (id, data) => {
     }
 
     const duplicatedMarca = await prisma.marca.findFirst({
-        where: { nombre: normalizedNombre, NOT: { id: idInt } }
+        where: { nombre: data.nombre, NOT: { id: idInt } }
     });
 
     if (duplicatedMarca) {
@@ -66,7 +58,7 @@ const updateMarca = async (id, data) => {
     const marca = await prisma.marca.update({
         where: { id: parseInt(id) },
         data: {
-            nombre: normalizedNombre,
+            nombre: data.nombre,
         }
     });
     return marca;
