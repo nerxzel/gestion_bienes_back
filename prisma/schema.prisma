@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum EstadoBien {
+  Bueno
+  Regular
+  Malo
+}
+
 model Bien {
   id               Int       @id @default(autoincrement())
   codigoInventario String    @unique
@@ -16,7 +22,7 @@ model Bien {
   valor            Float     
   costoAdquisicion Float
   valorResidual    Float     @default(0)
-  condicion        String    @default("Alta") 
+  condicion        String    @default("Pendiente") 
   isDeleted        Boolean   @default(false)
   fechaIngreso     DateTime
   fechaResolucion  DateTime?
@@ -24,7 +30,7 @@ model Bien {
   ultimaDepreciacion DateTime?
 
   tipoObjeto       String
-  estado           String
+  estado           EstadoBien 
   numSerie         String?
   color            String
   cantidadPieza    Int?

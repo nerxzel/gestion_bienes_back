@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import errorHandler from './src/middlewares/error-handler.js';
+import bienRoutes from './src/routes/bien.routes.js'
 import grupoRoutes from './src/routes/grupo.routes.js';
 import claseRoutes from './src/routes/clase.routes.js';
 import subclaseRoutes from './src/routes/subclase.routes.js';
@@ -16,6 +17,9 @@ const port = process.env.PORT || 3000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// Bien routes
+app.use('/api/bien', bienRoutes)
 
 // Grupo routes
 app.use('/api/grupo', grupoRoutes);
