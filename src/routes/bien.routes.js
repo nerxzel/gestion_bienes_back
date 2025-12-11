@@ -6,6 +6,7 @@ import { bienSchemaCreate, bienSchemaUpdate } from "../validators/bien.schema.js
 
 const router = Router();
 
+router.get("/test", bienController.test);
 router.get("/", bienController.findAll);
 router.get("/:id", bienController.findOneById);
 router.post("/", validateRequest(bienSchemaCreate), bienController.createOne);

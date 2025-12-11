@@ -1,6 +1,17 @@
 import bienService from "../services/bien.service.js";
 
 
+// GET /api/bien/test
+const test = async (req, res, next) => {
+    try {
+        const test = await bienService.nextCodInv();
+        res.status(200).json(test)
+    } catch {
+        return "Error"
+    }
+}
+
+
 // GET /api/bien/
 const findAll = async (req, res, next) => {
     try {
@@ -45,6 +56,7 @@ const updateOne = async (req, res, next) => {
 };
 
 export default {
+    test,
     findAll,
     findOneById,
     createOne,
