@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
-import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
-import { NotFoundError, ConflictError, BadRequestError } from "../utils/app-error.js"
+import { parseAndValidateId } from "../utils/utility-methods.js";
+import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllSubclases = async () => {
     const subclases = await prisma.subclase.findMany();
@@ -21,36 +21,18 @@ const getSubclaseById = async (id) => {
 }
 
 const createSubclase = async (data) => {
-    if (!data.nombre) {
-        throw new BadRequestError("El nombre es obligatorio");
+    const parentClaseExists = await prisma.clase.findUnique({
+        where: { id: data.claseId }
+    });
+    if (!parentClaseExists) {
+        throw new NotFoundError("Esta clase no existe");
     }
-
-    if (!data.claseId) {
-        throw new BadRequestError("La clase es obligatoria");
-    }
-
-    if (!data.grupoId) {
-        throw new BadRequestError("El grupo es obligatorio");
-    }
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-    const claseIdInt = parseInt(data.claseId);
-    const grupoIdInt = parseInt(data.grupoId);
-
-    if (data.claseId) {
-        const claseExists = await prisma.clase.findUnique({
-            where: { id: claseIdInt }
-        });
-        if (!claseExists) {
-            throw new NotFoundError("Esta clase no existe");
-        }
-        if (data.grupoId && claseExists.grupoId !== grupoIdInt) {
-            throw new ConflictError("Esta clase pertenece a otro grupo");
-        }
+    if (data.grupoId && parentClaseExists.grupoId !== data.grupoId) {
+        throw new ConflictError("Esta clase pertenece a otro grupo");
     }
 
     const duplicatedSubclase = await prisma.subclase.findFirst({
-        where: { nombre: normalizedNombre, claseId: claseIdInt, grupoId: grupoIdInt }
+        where: { nombre: data.nombre, claseId: data.claseId, grupoId: data.grupoId }
     });
 
     if (duplicatedSubclase) {
@@ -59,9 +41,9 @@ const createSubclase = async (data) => {
 
     const newSubclase = await prisma.subclase.create({
         data: {
-            nombre: normalizedNombre,
-            claseId: claseIdInt,
-            grupoId: grupoIdInt,
+            nombre: data.nombre,
+            claseId: data.claseId,
+            grupoId: data.grupoId,
         }
     });
     return newSubclase;
@@ -70,29 +52,18 @@ const createSubclase = async (data) => {
 const updateSubclase = async (id, data) => {
     const idInt = parseAndValidateId(id);
 
-    const currentSubclase = await prisma.subclase.findUnique({
+    const subclaseExists = await prisma.subclase.findUnique({
         where: { id: idInt }
     });
 
-    if (!currentSubclase) {
+    if (!subclaseExists) {
         throw new NotFoundError("Esta subclase no existe");
     }
 
-    const payloadToUpdate = {};
+    const finalClaseId = data.claseId ?? subclaseExists.claseId;
+    const finalGrupoId = data.grupoId ?? subclaseExists.grupoId;
 
-    if (data.nombre) {
-        payloadToUpdate.nombre = trimAndCapitalize(data.nombre);
-    }
-
-    const newClaseId = data.claseId ? parseInt(data.claseId) : null;
-    const newGrupoId = data.grupoId ? parseInt(data.grupoId) : null;
-
-    if (newClaseId) payloadToUpdate.claseId = newClaseId;
-    if (newGrupoId) payloadToUpdate.grupoId = newGrupoId;
-
-    const finalClaseId = newClaseId ?? currentSubclase.claseId;
-    const finalGrupoId = newGrupoId ?? currentSubclase.grupoId;
-    if (newClaseId || newGrupoId) {
+    if (data.claseId || data.grupoId) {
         const claseCheck = await prisma.clase.findUnique({
             where: { id: finalClaseId }
         });
@@ -104,39 +75,28 @@ const updateSubclase = async (id, data) => {
         if (claseCheck.grupoId !== finalGrupoId) {
             throw new ConflictError("La clase seleccionada no pertenece al grupo indicado");
         }
-
-        if (newGrupoId) {
-            const grupoCheck = await prisma.grupo.findUnique({ where: { id: newGrupoId } });
-            if (!grupoCheck) throw new NotFoundError("El grupo asignado no existe");
-        }
     }
+    if (data.nombre || data.claseId || data.grupoId) {
+        const finalNombre = data.nombre || subclaseExists.nombre;
 
-    if (payloadToUpdate.nombre || payloadToUpdate.claseId) {
-        const nombreCheck = payloadToUpdate.nombre || currentSubclase.nombre;
-
-        const duplicated = await prisma.subclase.findFirst({
+        const duplicatedSubclase = await prisma.subclase.findFirst({
             where: {
-                nombre: nombreCheck,
+                nombre: finalNombre,
                 claseId: finalClaseId,
+                grupoId: finalGrupoId,
                 NOT: { id: idInt }
             }
         });
 
-        if (duplicated) {
-            throw new ConflictError("Ya existe una subclase con este nombre en la clase seleccionada");
+        if (duplicatedSubclase) {
+            throw new ConflictError("Esta subclase ya existe para esta clase y grupo");
         }
     }
 
-    if (Object.keys(payloadToUpdate).length === 0) {
-        return currentSubclase;
-    }
-
-    const subclase = await prisma.subclase.update({
+    return await prisma.subclase.update({
         where: { id: idInt },
-        data: payloadToUpdate,
+        data: data
     });
-
-    return subclase;
 }
 
 export default {

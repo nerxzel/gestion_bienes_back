@@ -1,6 +1,6 @@
 import prisma from "../config/prisma.js";
-import { trimAndCapitalize, parseAndValidateId } from "../utils/utility-methods.js";
-import { NotFoundError, ConflictError, BadRequestError } from "../utils/app-error.js"
+import { parseAndValidateId } from "../utils/utility-methods.js";
+import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllGrupos = async () => {
     const grupos = await prisma.grupo.findMany();
@@ -21,18 +21,8 @@ const getGrupoById = async (id) => {
 }
 
 const createGrupo = async (data) => {
-    if (!data.nombre) {
-        throw new BadRequestError("El nombre es obligatorio");
-    }
-
-    if (!data.vidaUtil) {
-        throw new BadRequestError("La vida útil es obligatoria");
-    }
-
-    const normalizedNombre = trimAndCapitalize(data.nombre);
-
     const duplicatedGrupo = await prisma.grupo.findFirst({
-        where: { nombre: normalizedNombre }
+        where: { nombre: data.nombre }
     });
 
     if (duplicatedGrupo) {
@@ -41,8 +31,8 @@ const createGrupo = async (data) => {
 
     const newGrupo = await prisma.grupo.create({
         data: {
-            nombre: normalizedNombre,
-            vidaUtil: parseInt(data.vidaUtil),
+            nombre: data.nombre,
+            vidaUtil: data.vidaUtil,
         }
     });
     return newGrupo;
@@ -50,16 +40,6 @@ const createGrupo = async (data) => {
 
 const updateGrupo = async (id, data) => {
     const idInt = parseAndValidateId(id);
-    const payloadToUpdate = {};
-
-    if (data.nombre) {
-        const capitalizedNombre = trimAndCapitalize(data.nombre);
-        payloadToUpdate.nombre = capitalizedNombre;
-    }
-
-    if (data.vidaUtil) {
-        payloadToUpdate.vidaUtil = parseInt(data.vidaUtil);
-    }
 
     const grupoExists = await prisma.grupo.findUnique({
         where: { id: idInt }
@@ -69,13 +49,13 @@ const updateGrupo = async (id, data) => {
         throw new NotFoundError("Este grupo no existe");
     }
 
-    if (Object.keys(payloadToUpdate).length === 0) {
+    if (Object.keys(data).length === 0) {
         return grupoExists;
     }
 
-    if (payloadToUpdate.nombre) {
+    if (data.nombre) {
         const duplicatedGrupo = await prisma.grupo.findFirst({
-            where: { nombre: payloadToUpdate.nombre, NOT: { id: idInt } }
+            where: { nombre: data.nombre, NOT: { id: idInt } }
         });
 
         if (duplicatedGrupo) {
@@ -85,7 +65,7 @@ const updateGrupo = async (id, data) => {
 
     const updatedGrupo = await prisma.grupo.update({
         where: { id: idInt },
-        data: payloadToUpdate,
+        data: data,
     });
     return updatedGrupo;
 }
