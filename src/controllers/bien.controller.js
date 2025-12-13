@@ -11,7 +11,6 @@ const test = async (req, res, next) => {
     }
 }
 
-
 // GET /api/bien/
 const findAll = async (req, res, next) => {
     try {
@@ -21,6 +20,16 @@ const findAll = async (req, res, next) => {
         next(error);
     }
 };
+
+// GET /api/bien/grid
+const getGrid = async (req, res, next) => {
+    try {
+        const gridBienes = await bienService.getGridBienes();
+        res.status(200).json(gridBienes)
+    } catch (error) {
+        next(error)
+    }
+}
 
 // GET /api/grupo/:id
 const findOneById = async (req, res, next) => {
@@ -58,6 +67,7 @@ const updateOne = async (req, res, next) => {
 export default {
     test,
     findAll,
+    getGrid,
     findOneById,
     createOne,
     updateOne,

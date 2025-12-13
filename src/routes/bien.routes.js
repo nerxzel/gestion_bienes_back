@@ -8,8 +8,11 @@ const router = Router();
 
 router.get("/test", bienController.test);
 router.get("/", bienController.findAll);
-router.get("/:id", bienController.findOneById);
+router.get("/grid", bienController.getGrid);
 router.post("/", validateRequest(bienSchemaCreate), bienController.createOne);
+
+// Eh, I think that dinamic routes always have to be at the bottom.
+router.get("/:id", bienController.findOneById);
 router.put("/:id", validateRequest(bienSchemaUpdate), bienController.updateOne);
 
 export default router;

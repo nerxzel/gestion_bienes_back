@@ -7,8 +7,40 @@ const getAllBienes = async () => {
     return bienes;
 }
 
+const getGridBienes = async () => {
+    const bienes = await prisma.bien.findMany({
+        select: {
+            codigoInventario: true,
+            nombre: true,
+            grupo: { select: { nombre: true } },
+            clase: { select: { nombre: true } },
+            subclase: { select: { nombre: true }},
+            fechaIngreso: true,
+            condicion: true,
+            estado: true,
+            ultimaDepreciacion: true,
+            valor: true
+        }, orderBy: { id: 'desc' }
+    });
+
+    const mapBienes = bienes.map(bien => ({
+        codigoInventario: bien.codigoInventario,
+        nombre: bien.nombre,
+        grupo: bien.grupo?.nombre || "Sin grupo",
+        clase: bien.clase?.nombre || "Sin clase",
+        subcalse: bien.subclase?.nombre || "Sin subclase",
+        fechaIngreso: bien.fechaIngreso,
+        condicion: bien.condicion,
+        estado: bien.estado,
+        ultimaDepreciacion: bien.ultimaDepreciacion,
+        valor: bien.valor
+    }))
+
+    return mapBienes;
+}
+
 const getBienbyId = async (id) => {
-    const idInt = parseInt(id)
+    const idInt = parseAndValidateId(id)
     const bien = await prisma.bien.findUnique({
         where: { id: idInt }
     });
@@ -33,22 +65,21 @@ const nextCodInv = async () => {
     const codInv = lastCodInv.codigoInventario.split("-")
     const stringPart = codInv[0]
     const numPart = codInv[1]
-    const toInt = parseInt(numPart)
-    const count = toInt + 1
-    const stringCount = count.toString()
+    const toInt = parseInt(numPart) + 1
+    const stringCount = toInt.toString()
     const padded = stringCount.padStart(4, "0")
-    const mixed = stringPart + ("-") + padded
+    const newCodInv = stringPart + ("-") + padded
 
-    console.log("Está es la info de nextCodInv:", codInv)
-    console.log("A ver cómo quedó:", mixed)
-
-    return mixed
+    return newCodInv
 
 }
 
 const createBien = async (data) => {
+    const newCodigoInventario = await nextCodInv()
+    const initialCost = data.costoAdquisicion
+
     const duplicatedBien = await prisma.bien.findFirst({
-        where: { codigoInventario: data.codigoInventario }
+        where: { codigoInventario: newCodigoInventario }
     });
 
     if (duplicatedBien) {
@@ -56,13 +87,31 @@ const createBien = async (data) => {
     }
 
     const newBien = await prisma.bien.create({
-        data: data
+       data: {
+        ...data,
+        codigoInventario: newCodigoInventario,
+        valor: initialCost
+       }
     });
     return newBien;
-
 }
 
 const updateBien = async (id, data) => {
+    const idInt = parseAndValidateId(id)
+
+    const bienExist = await prisma.bien.findUnique({
+        where: {id: idInt}
+    })
+
+    if (!bienExist) {
+        throw new NotFoundError("Este bien no existe")  
+    }
+
+    const updatedBien = await prisma.bien.update({
+        where: {id: idInt},
+        data: data
+    }); 
+    return updatedBien
 
 }
 
@@ -70,6 +119,7 @@ export default {
     nextCodInv,
     createBien,
     getAllBienes,
+    getGridBienes,
     getBienbyId,
     updateBien,
 }
