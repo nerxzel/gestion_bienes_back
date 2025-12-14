@@ -48,7 +48,10 @@ const createClase = async (data) => {
 const updateClase = async (id, data) => {
     const idInt = parseAndValidateId(id);
 
-    const claseExists = await prisma.clase.findUnique({ where: { id: idInt } });
+    const claseExists = await prisma.clase.findUnique({
+        where: { id: idInt }
+    });
+
     if (!claseExists) {
         throw new NotFoundError("Esta clase no existe");
     }
