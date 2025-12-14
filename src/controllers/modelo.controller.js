@@ -3,7 +3,8 @@ import modeloService from "../services/modelo.service.js";
 // GET /api/modelo/
 const findAll = async (req, res, next) => {
     try {
-        const modelos = await modeloService.getAllModelos();
+        const filters = req.query
+        const modelos = await modeloService.getAllModelos(filters);
         res.status(200).json(modelos);
     } catch (error) {
         next(error);

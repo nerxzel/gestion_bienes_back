@@ -3,7 +3,12 @@ import claseService from "../services/clase.service.js";
 // GET /api/clase/
 const findAll = async (req, res, next) => {
     try {
-        const clases = await claseService.getAllClases();
+        const { grupoId, dropdowns } = req.query;
+
+        const clases = await claseService.getAllClases({
+            grupoId: grupoId,
+            dropdowns: dropdowns === 'true'
+        });
         res.status(200).json(clases);
     } catch (error) {
         next(error);

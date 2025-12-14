@@ -2,8 +2,17 @@ import prisma from "../config/prisma.js";
 import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
-const getAllModelos = async () => {
-    const modelos = await prisma.modelo.findMany();
+const getAllModelos = async (filters = {}) => {
+    const where = {};
+
+    if (filters.marcaId) {
+        where.marcaId = parseInt(filters.marcaId)
+    }
+
+    const modelos = await prisma.modelo.findMany({
+        where: where,
+        orderBy: { id: 'desc' }
+    });
     return modelos;
 }
 

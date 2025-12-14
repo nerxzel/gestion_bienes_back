@@ -112,7 +112,6 @@ const updateBien = async (id, data) => {
         data: data
     }); 
     return updatedBien
-
 }
 
 export default {

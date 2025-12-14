@@ -7,6 +7,10 @@ const getAllGrupos = async () => {
     return grupos;
 }
 
+const grupoDropdown = async () => {
+    
+}
+
 const getGrupoById = async (id) => {
     const idInt = parseAndValidateId(id);
     const grupo = await prisma.grupo.findUnique({
