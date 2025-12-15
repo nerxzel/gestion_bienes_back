@@ -4,7 +4,11 @@ import grupoService from "../services/grupo.service.js";
 // GET /api/grupo/all
 const findAll = async (req, res, next) => {
     try {
-        const grupos = await grupoService.getAllGrupos();
+        const { dropdown } = req.query;
+
+        const grupos = await grupoService.getAllGrupos({
+            dropdown: dropdown === 'true'
+        });
         res.status(200).json(grupos);
     } catch (error) {
         next(error);

@@ -3,14 +3,14 @@ import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllClases = async (params = {}) => {
-    const { grupoId, dropdowns } = params;
+    const { grupoId, dropdown } = params;
 
     const where = {};
     if (grupoId) {
         where.grupoId = parseInt(grupoId)
     }
 
-    const select = dropdowns ? {
+    const select = dropdown ? {
         id: true,
         nombre: true,
     } : undefined;

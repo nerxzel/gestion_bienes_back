@@ -2,8 +2,24 @@ import prisma from "../config/prisma.js";
 import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
-const getAllSubclases = async () => {
-    const subclases = await prisma.subclase.findMany();
+const getAllSubclases = async (params = {}) => {
+    const { claseId, dropdown } = params;
+
+    const where = {};
+    if (claseId) {
+        where.claseId = parseInt(claseId)
+    }
+
+    const select = dropdown ? {
+        id: true,
+        nombre: true,
+    } : undefined;
+
+    const subclases = await prisma.subclase.findMany({
+        where: where,
+        select: select,
+        orderBy: { id: 'desc' }
+    });
     return subclases;
 }
 

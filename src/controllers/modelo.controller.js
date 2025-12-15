@@ -3,8 +3,12 @@ import modeloService from "../services/modelo.service.js";
 // GET /api/modelo/
 const findAll = async (req, res, next) => {
     try {
-        const filters = req.query
-        const modelos = await modeloService.getAllModelos(filters);
+        const { marcaId, dropdown } = req.query
+
+        const modelos = await modeloService.getAllModelos({
+            marcaId: marcaId,
+            dropdown: dropdown === 'true'
+        });
         res.status(200).json(modelos);
     } catch (error) {
         next(error);

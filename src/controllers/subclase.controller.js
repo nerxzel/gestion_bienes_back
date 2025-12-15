@@ -3,7 +3,12 @@ import subclaseService from "../services/subclase.service.js";
 // GET /api/subclase/
 const findAll = async (req, res, next) => {
     try {
-        const subclases = await subclaseService.getAllSubclases();
+        const { claseId, dropdown } = req.query;
+
+        const subclases = await subclaseService.getAllSubclases({
+            claseId: claseId,
+            dropdown: dropdown === 'true'
+        });
         res.status(200).json(subclases);
     } catch (error) {
         next(error);
