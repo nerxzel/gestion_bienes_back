@@ -23,6 +23,16 @@ const getAllModelos = async (params = {}) => {
     return modelos;
 }
 
+const getGridModelos = async () => {
+    const modelos = await prisma.modelo.findMany({
+        include: {
+            marca: { select: {nombre: true} }
+        }
+    });
+
+    return modelos;
+}
+
 const getModeloById = async (id) => {
     const idInt = parseAndValidateId(id);
     const modelo = await prisma.modelo.findUnique({
@@ -107,6 +117,7 @@ const updateModelo = async (id, data) => {
 
 export default {
     createModelo,
+    getGridModelos,
     getAllModelos,
     getModeloById,
     updateModelo,

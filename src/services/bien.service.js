@@ -13,6 +13,7 @@ const getGridBienes = async () => {
     const bienes = await prisma.bien.findMany({
         where: { isDeleted: false },
         select: {
+            id: true,
             codigoInventario: true,
             nombre: true,
             grupo: { select: { nombre: true } },
@@ -27,6 +28,7 @@ const getGridBienes = async () => {
     });
 
     const mapBienes = bienes.map(bien => ({
+        id: bien.id,
         codigoInventario: bien.codigoInventario,
         nombre: bien.nombre,
         grupo: bien.grupo?.nombre || "Sin grupo",

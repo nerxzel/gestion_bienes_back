@@ -7,6 +7,7 @@ import { modeloSchemaCreate, modeloSchemaUpdate } from "../validators/modelo.sch
 const router = Router();
 
 router.get("/", authenticateToken, modeloController.findAll);
+router.get("/grid", authenticateToken, modeloController.getGrid);
 router.get("/:id", authenticateToken, modeloController.findOneById);
 router.post("/", authenticateToken, validateRequest(modeloSchemaCreate), modeloController.createOne);
 router.put("/:id", authenticateToken, validateRequest(modeloSchemaUpdate), modeloController.updateOne);

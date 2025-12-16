@@ -23,6 +23,24 @@ const getAllSubclases = async (params = {}) => {
     return subclases;
 }
 
+const getGridSubclases = async () => {
+    const subclases = await prisma.subclase.findMany({
+        include: {
+            clase: { 
+                select: { 
+                    nombre: true,
+                    grupo: { 
+                        select: 
+                            {nombre: true}
+                        }
+                    }
+            }
+        }
+    });
+
+    return subclases;
+}
+
 const getSubclaseById = async (id) => {
     const idInt = parseAndValidateId(id);
     const subclase = await prisma.subclase.findUnique({
@@ -117,6 +135,7 @@ const updateSubclase = async (id, data) => {
 
 export default {
     createSubclase,
+    getGridSubclases,
     getAllSubclases,
     getSubclaseById,
     updateSubclase,

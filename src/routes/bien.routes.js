@@ -15,8 +15,8 @@ router.post("/", authenticateToken, validateRequest(bienSchemaCreate), bienContr
 
 // Eh, I think that dinamic routes always have to be at the bottom.
 router.get("/:id", authenticateToken, bienController.findOneById);
-router.post("/softDelete/:id", authenticateToken, bienController.softDelete);
-router.delete("/:id", authenticateToken, bienController.hardDelete);
+router.post("/:id", authenticateToken, bienController.softDelete);
+router.delete("/hardDelete/:id", authenticateToken, bienController.hardDelete);
 router.put("/:id", authenticateToken, validateRequest(bienSchemaUpdate), bienController.updateOne);
 
 export default router;

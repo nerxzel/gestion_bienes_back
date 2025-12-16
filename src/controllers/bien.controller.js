@@ -64,7 +64,7 @@ const updateOne = async (req, res, next) => {
     }
 };
 
-// POST /api/bien/softDelete/:id
+// POST /api/bien/:id
 const softDelete = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -75,7 +75,7 @@ const softDelete = async (req, res, next) => {
     }
 };
 
-// DELETE /api/bien/:id
+// DELETE /api/bien/hardDelete/:id
 const hardDelete = async (req, res, next) => {
     try {
         const { id } = req.params;
