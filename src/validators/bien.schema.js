@@ -3,7 +3,7 @@ import { z } from "zod";
 const optionalNumber = z.preprocess(
     (value) => (value === "" ? null : value),
     z.coerce.number({ invalid_type_error: "Debe ser un número" })
-        .positive("Debe ser mayor a 0")
+        .nonnegative("Debe ser mayor a 0")
         .nullable()
         .optional()
 );
@@ -45,7 +45,7 @@ export const bienSchemaCreate = z.object({
         invalid_type_error: "El costo de adquisición debe ser un número"
     })
         .int("El costo de adquisición debe ser un número entero")
-        .positive("El costo de adquisición debe ser un número positivo"),
+        .nonnegative("El costo de adquisición debe ser un número positivo"),
 
     // Fecha Ingreso
     fechaIngreso: z.coerce.date({
