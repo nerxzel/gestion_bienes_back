@@ -2,8 +2,19 @@ import prisma from "../config/prisma.js";
 import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
-const getAllResponsables = async () => {
-    const responsables = await prisma.responsable.findMany();
+const getAllResponsables = async ( param = {} ) => {
+    const { dropdown } = param;
+
+    const select = dropdown ? {
+        id: true,
+        rut: true,
+        nombre: true,
+    } : undefined;
+
+    const responsables = await prisma.responsable.findMany({
+        select: select,
+        orderBy: { id: 'desc' }
+    });
     return responsables;
 }
 

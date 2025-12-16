@@ -1,7 +1,7 @@
 import grupoService from "../services/grupo.service.js";
 
-
-// GET /api/grupo/all
+// GET /api/grupo
+// GET /api/grupo?dropdown=true for dropdown
 const findAll = async (req, res, next) => {
     try {
         const { dropdown } = req.query;

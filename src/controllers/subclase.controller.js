@@ -1,6 +1,8 @@
 import subclaseService from "../services/subclase.service.js";
 
-// GET /api/subclase/
+// GET /api/subclase
+// GET /api/subclase?dropdown=true for dropdowns
+// GET /api/subclase?claseId=1 for subclase by clase
 const findAll = async (req, res, next) => {
     try {
         const { claseId, dropdown } = req.query;

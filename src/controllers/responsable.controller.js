@@ -1,9 +1,14 @@
 import responsableService from "../services/responsable.service.js";
 
-// GET /api/responsable/
+// GET /api/responsable
+// GET /api/responsable?dropdown=true for dropdown
 const findAll = async (req, res, next) => {
     try {
-        const responsables = await responsableService.getAllResponsables();
+        const { dropdown } = req.query;
+
+        const responsables = await responsableService.getAllResponsables({
+            dropdown: dropdown === 'true'
+        });
         res.status(200).json(responsables);
     } catch (error) {
         next(error);

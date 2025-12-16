@@ -1,4 +1,3 @@
-
 export const validateRequest = (schema) => (req, res, next) => {
     const result = schema.safeParse(req.body);
 

@@ -1,6 +1,8 @@
 import claseService from "../services/clase.service.js";
 
-// GET /api/clase/
+// GET /api/clase
+// GET /api/clase?dropdown=true for dropdowns
+// GET /api/clase?grupoId=1 for clase by grupo
 const findAll = async (req, res, next) => {
     try {
         const { grupoId, dropdown } = req.query;

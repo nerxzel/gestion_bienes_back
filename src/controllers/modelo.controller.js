@@ -1,6 +1,8 @@
 import modeloService from "../services/modelo.service.js";
 
-// GET /api/modelo/
+// GET /api/modelo
+// GET /api/modelo?dropdown=true for dropdowns
+// GET /api/modelo?marcaId=1 for modelo by marca
 const findAll = async (req, res, next) => {
     try {
         const { marcaId, dropdown } = req.query

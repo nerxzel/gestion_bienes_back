@@ -28,7 +28,7 @@ const getGridBienes = async () => {
         nombre: bien.nombre,
         grupo: bien.grupo?.nombre || "Sin grupo",
         clase: bien.clase?.nombre || "Sin clase",
-        subcalse: bien.subclase?.nombre || "Sin subclase",
+        subclase: bien.subclase?.nombre || "Sin subclase",
         fechaIngreso: bien.fechaIngreso,
         condicion: bien.condicion,
         estado: bien.estado,
