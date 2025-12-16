@@ -10,6 +10,7 @@ import modeloRoutes from './src/routes/modelo.routes.js';
 import ubicacionRoutes from './src/routes/ubicacion.routes.js';
 import unidadMedidaRoutes from './src/routes/unidadMedida.routes.js';
 import responsableRoutes from './src/routes/responsable.routes.js';
+import userRoutes from './src/routes/user.routes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,6 +18,9 @@ const port = process.env.PORT || 3000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+// User routes
+app.use('/api/user', userRoutes)
 
 // Bien routes
 app.use('/api/bien', bienRoutes)

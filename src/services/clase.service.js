@@ -2,8 +2,24 @@ import prisma from "../config/prisma.js";
 import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
-const getAllClases = async () => {
-    const clases = await prisma.clase.findMany();
+const getAllClases = async (params = {}) => {
+    const { grupoId, dropdown } = params;
+
+    const where = {};
+    if (grupoId) {
+        where.grupoId = parseInt(grupoId)
+    }
+
+    const select = dropdown ? {
+        id: true,
+        nombre: true,
+    } : undefined;
+
+    const clases = await prisma.clase.findMany({
+        where: where,
+        select: select,
+        orderBy: { id: 'desc' }
+    });
     return clases;
 }
 

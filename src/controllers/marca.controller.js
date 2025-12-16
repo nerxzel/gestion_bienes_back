@@ -1,6 +1,6 @@
 import marcaService from "../services/marca.service.js";
 
-// GET /api/marca/
+// GET /api/marca
 const findAll = async (req, res, next) => {
     try {
         const marcas = await marcaService.getAllMarcas();

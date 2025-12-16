@@ -164,3 +164,13 @@ model Responsable {
 
   @@map("responsables")
 }
+
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  password String
+  role String @default("user")
+
+  @@map("users")
+}
