@@ -31,7 +31,7 @@ const getGrid = async (req, res, next) => {
     }
 }
 
-// GET /api/grupo/:id
+// GET /api/bien/:id
 const findOneById = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -43,7 +43,7 @@ const findOneById = async (req, res, next) => {
     }
 };
 
-// POST /api/grupo/
+// POST /api/bien/
 const createOne = async (req, res, next) => {
     try {
         const newBien = await bienService.createBien(req.body);
@@ -53,12 +53,34 @@ const createOne = async (req, res, next) => {
     }
 };
 
-// PUT /api/grupo/:id
+// PUT /api/bien/:id
 const updateOne = async (req, res, next) => {
     try {
         const { id } = req.params;
         const updateBien = await bienService.updateBien(id, req.body);
         res.status(200).json(updateBien);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// POST /api/bien/softDelete/:id
+const softDelete = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const softDeletedBien = await bienService.softDeleteBien(id)
+        res.status(200).json(softDeletedBien);
+    } catch (error) {
+        next(error);
+    }
+};
+
+// DELETE /api/bien/:id
+const hardDelete = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const hardDeletedBien = await bienService.hardDeleteBien(id)
+        res.status(200).json(hardDeletedBien);
     } catch (error) {
         next(error);
     }
@@ -71,4 +93,6 @@ export default {
     findOneById,
     createOne,
     updateOne,
+    softDelete,
+    hardDelete,
 }
