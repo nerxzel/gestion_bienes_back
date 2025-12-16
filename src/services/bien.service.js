@@ -3,12 +3,15 @@ import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
 const getAllBienes = async () => {
-    const bienes = await prisma.bien.findMany();
+    const bienes = await prisma.bien.findMany({
+        where: { isDeleted: false }
+    });
     return bienes;
 }
 
 const getGridBienes = async () => {
     const bienes = await prisma.bien.findMany({
+        where: { isDeleted: false },
         select: {
             codigoInventario: true,
             nombre: true,
@@ -45,8 +48,8 @@ const getBienbyId = async (id) => {
         where: { id: idInt }
     });
 
-    if (!bien) {
-        throw new NotFoundError("Este bien no existe");
+    if (!bien || bien.isDeleted) {
+        throw new NotFoundError("Este bien no existe o fue eliminado");
     }
 
     return bien;
@@ -114,6 +117,43 @@ const updateBien = async (id, data) => {
     return updatedBien
 }
 
+const softDeleteBien = async (id) => {
+    const idInt = parseAndValidateId(id)
+
+    const bienExist = await prisma.bien.findUnique({
+        where: {id: idInt }
+    })
+
+    if (!bienExist) {
+        throw new NotFoundError("Este bien no existe")
+    }
+
+    const sofDeletedBien = await prisma.bien.update({
+        where: { id: idInt },
+        data: {isDeleted: true}
+    });
+
+    return sofDeletedBien;
+}
+
+const hardDeleteBien = async (id) => {
+    const idInt = parseAndValidateId(id);
+
+    const bienExist = await prisma.bien.findUnique({
+        where: { id: idInt }
+    });
+
+    if (!bienExist) {
+        throw new NotFoundError("Este bien no existe");
+    }
+
+    const deletedBien = await prisma.bien.delete({
+        where: { id: idInt }
+    });
+
+    return deletedBien;
+}
+
 export default {
     nextCodInv,
     createBien,
@@ -121,4 +161,6 @@ export default {
     getGridBienes,
     getBienbyId,
     updateBien,
+    softDeleteBien,
+    hardDeleteBien,
 }
