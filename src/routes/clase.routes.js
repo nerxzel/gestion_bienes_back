@@ -7,6 +7,7 @@ import { claseSchemaCreate, claseSchemaUpdate } from "../validators/clase.schema
 const router = Router();
 
 router.get("/", authenticateToken, claseController.findAll);
+router.get("/grid", authenticateToken, claseController.getGrid);
 router.get("/:id", authenticateToken, claseController.findOneById);
 router.post("/", authenticateToken, validateRequest(claseSchemaCreate), claseController.createOne);
 router.put("/:id", authenticateToken, validateRequest(claseSchemaUpdate), claseController.updateOne);

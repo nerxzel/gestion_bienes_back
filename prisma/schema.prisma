@@ -101,7 +101,7 @@ model Subclase {
   nombre String
 
   claseId Int
-  clases Clase @relation(fields: [claseId], references: [id])
+  clase Clase @relation(fields: [claseId], references: [id])
 
   grupoId Int
   grupo Grupo @relation(fields: [grupoId], references: [id])

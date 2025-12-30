@@ -8,15 +8,15 @@ import { bienSchemaCreate, bienSchemaUpdate } from "../validators/bien.schema.js
 const router = Router();
 
 router.get("/test", authenticateToken, bienController.test);
-router.get("/", authenticateToken, bienController.findAll);
 router.get("/grid", authenticateToken, bienController.getGrid);
-router.post("/", authenticateToken, validateRequest(bienSchemaCreate), bienController.createOne);
-
-
-// Eh, I think that dinamic routes always have to be at the bottom.
+router.get("/", authenticateToken, bienController.findAll);
 router.get("/:id", authenticateToken, bienController.findOneById);
-router.post("/softDelete/:id", authenticateToken, bienController.softDelete);
-router.delete("/:id", authenticateToken, bienController.hardDelete);
+router.post("/", authenticateToken, validateRequest(bienSchemaCreate), bienController.createOne);
+router.post("/:id", authenticateToken, bienController.softDelete);
+router.put("/alta/:id", authenticateToken, bienController.alta);
+router.put("/baja/:id", authenticateToken, bienController.baja);
 router.put("/:id", authenticateToken, validateRequest(bienSchemaUpdate), bienController.updateOne);
+router.delete("/hardDelete/:id", authenticateToken, bienController.hardDelete);
+
 
 export default router;

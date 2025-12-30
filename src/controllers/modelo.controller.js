@@ -17,6 +17,16 @@ const findAll = async (req, res, next) => {
     }
 };
 
+// GET /api/modelo/grid
+const getGrid = async (req, res, next) => {
+    try {
+        const gridModelos = await modeloService.getGridModelos();
+        res.status(200).json(gridModelos)
+    } catch (error) {
+        next(error)
+    }
+}
+
 // GET /api/modelo/:id
 const findOneById = async (req, res, next) => {
     try {
@@ -52,6 +62,7 @@ const updateOne = async (req, res, next) => {
 
 export default {
     findAll,
+    getGrid,
     findOneById,
     createOne,
     updateOne

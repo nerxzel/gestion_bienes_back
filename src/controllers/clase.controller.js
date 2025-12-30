@@ -17,6 +17,16 @@ const findAll = async (req, res, next) => {
     }
 };
 
+// GET /api/clase/grid
+const getGrid = async (req, res, next) => {
+    try {
+        const gridClases = await claseService.getGridClases();
+        res.status(200).json(gridClases)
+    } catch (error) {
+        next(error)
+    }
+}
+
 // GET /api/clase/:id
 const findOneById = async (req, res, next) => {
     try {
@@ -52,6 +62,7 @@ const updateOne = async (req, res, next) => {
 
 export default {
     findAll,
+    getGrid,
     findOneById,
     createOne,
     updateOne

@@ -23,6 +23,16 @@ const getAllClases = async (params = {}) => {
     return clases;
 }
 
+const getGridClases = async () => {
+    const clases = await prisma.clase.findMany({
+        include: {
+            grupo: { select: {nombre: true} }
+        }
+    });
+
+    return clases;
+}
+
 const getClaseById = async (id) => {
     const idInt = parseAndValidateId(id);
     const clase = await prisma.clase.findUnique({
@@ -110,6 +120,7 @@ const updateClase = async (id, data) => {
 
 export default {
     createClase,
+    getGridClases,
     getAllClases,
     getClaseById,
     updateClase,

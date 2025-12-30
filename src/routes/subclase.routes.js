@@ -7,6 +7,7 @@ import { subclaseSchemaCreate, subclaseSchemaUpdate } from "../validators/subcla
 const router = Router();
 
 router.get("/", authenticateToken, subclaseController.findAll);
+router.get("/grid", authenticateToken, subclaseController.getGrid)
 router.get("/:id", authenticateToken, subclaseController.findOneById);
 router.post("/", authenticateToken, validateRequest(subclaseSchemaCreate), subclaseController.createOne);
 router.put("/:id", authenticateToken, validateRequest(subclaseSchemaUpdate), subclaseController.updateOne);

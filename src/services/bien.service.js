@@ -13,6 +13,7 @@ const getGridBienes = async () => {
     const bienes = await prisma.bien.findMany({
         where: { isDeleted: false },
         select: {
+            id: true,
             codigoInventario: true,
             nombre: true,
             grupo: { select: { nombre: true } },
@@ -27,6 +28,7 @@ const getGridBienes = async () => {
     });
 
     const mapBienes = bienes.map(bien => ({
+        id: bien.id,
         codigoInventario: bien.codigoInventario,
         nombre: bien.nombre,
         grupo: bien.grupo?.nombre || "Sin grupo",
@@ -117,6 +119,79 @@ const updateBien = async (id, data) => {
     return updatedBien
 }
 
+const nextResolucion = async () => {
+
+    const lastResolucion = await prisma.bien.findFirst({
+        where: { nroResolucion: { not: null } },
+        orderBy: { nroResolucion: 'desc'  }
+    });
+
+    if (!lastResolucion) {
+        return "001"
+    }
+
+   const currentResolucion = parseInt(lastResolucion.nroResolucion, 10);
+   const sum = currentResolucion + 1;
+   const newResolucion = sum.toString().padStart(3, "0");
+
+    return newResolucion
+
+}
+
+const altaBien = async (id, data) => {
+    const newResolucion = await nextResolucion()
+    const currentDate = new Date();
+    const idInt = parseAndValidateId(id)
+
+    const bienExists = await prisma.bien.findUnique({
+        where: { id: idInt }
+    })
+
+    if (!bienExists) {
+        throw new NotFoundError("Este bien no existe")
+    } 
+
+    const altaBien = await prisma.bien.update({
+        where: {id: idInt},
+        data: {
+            ...data,
+            nroResolucion: newResolucion,
+            fechaResolucion: currentDate,
+            condicion: "Alta"
+        },
+    })
+
+    return altaBien
+
+}
+
+const bajaBien = async (id, data) => {
+    const newResolucion = await nextResolucion()
+    const currentDate = new Date();
+    const idInt = parseAndValidateId(id)
+
+    const bienExists = await prisma.bien.findUnique({
+        where: { id: idInt }
+    })
+
+    if (!bienExists) {
+        throw new NotFoundError("Este bien no existe")
+    } 
+
+    const bajaBien = await prisma.bien.update({
+        where: {id: idInt},
+        data: {
+            ...data,
+            nroResolucion: newResolucion,
+            fechaResolucion: currentDate,
+            condicion: "Baja"
+        },
+    })
+
+    return bajaBien
+
+}
+
 const softDeleteBien = async (id) => {
     const idInt = parseAndValidateId(id)
 
@@ -161,6 +236,8 @@ export default {
     getGridBienes,
     getBienbyId,
     updateBien,
+    altaBien,
+    bajaBien,
     softDeleteBien,
     hardDeleteBien,
 }
