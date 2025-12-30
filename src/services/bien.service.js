@@ -192,6 +192,59 @@ const bajaBien = async (id, data) => {
 
 }
 
+const depreciarBien = async (id, data) => {
+    const idInt = parseAndValidateId(id);
+
+    const depreciationData = await prisma.bien.findUnique({
+        where: { id: idInt},
+        select: { grupo: { select: { vidaUtil: true}},
+        costoAdquisicion: true, 
+        valorResidual: true,
+        fechaIngreso: true,
+        },
+    });
+
+    const { grupo, costoAdquisicion, valorResidual, fechaIngreso} = depreciationData
+    const vidaUtil = grupo.vidaUtil
+
+
+    const monthlyDepreciation =  Math.floor((costoAdquisicion - valorResidual) / (vidaUtil * 12))
+
+    const currentDate = new Date()
+    const fechaIngresoCalc = new Date(fechaIngreso)
+
+    let months = (currentDate.getFullYear() - fechaIngresoCalc.getFullYear()) * 12;
+    months -= fechaIngresoCalc.getMonth();
+    months += currentDate.getMonth();
+
+    let newValue = costoAdquisicion - (months * monthlyDepreciation);
+
+    if (newValue < valorResidual) {
+        newValue = valorResidual; 
+    }
+
+    const depreciatedBien = await prisma.bien.update({
+        where: { id: idInt },
+        data: {
+            valor: newValue,
+            ultimaDepreciacion: currentDate
+        }
+    });
+ 
+    return depreciatedBien;
+
+}
+
+const depreciarBienes = async () => {
+    const bienes = await getAllBienes();
+    
+    const promises = bienes.map(bien => depreciarBien(bien.id))
+
+    const results = await Promise.all(promises)
+
+    return results
+}
+
 const softDeleteBien = async (id) => {
     const idInt = parseAndValidateId(id)
 
@@ -238,6 +291,8 @@ export default {
     updateBien,
     altaBien,
     bajaBien,
+    depreciarBien,
+    depreciarBienes,
     softDeleteBien,
     hardDeleteBien,
 }
