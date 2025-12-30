@@ -205,10 +205,8 @@ const depreciarBien = async (id, data) => {
     });
 
     const { grupo, costoAdquisicion, valorResidual, fechaIngreso} = depreciationData
-    const vidaUtil = grupo.vidaUtil
-
-
-    const monthlyDepreciation =  Math.floor((costoAdquisicion - valorResidual) / (vidaUtil * 12))
+    const vidaUtilAnhos = grupo.vidaUtil
+    const vidaUtilMeses = vidaUtilAnhos * 12
 
     const currentDate = new Date()
     const fechaIngresoCalc = new Date(fechaIngreso)
@@ -217,7 +215,16 @@ const depreciarBien = async (id, data) => {
     months -= fechaIngresoCalc.getMonth();
     months += currentDate.getMonth();
 
-    let newValue = costoAdquisicion - (months * monthlyDepreciation);
+    if (months < 0) months = 0;
+
+    const effectiveMonths = Math.min(months, vidaUtilMeses)
+
+    const depreciacion = costoAdquisicion - valorResidual;
+    const depreciacionAcumulada = (depreciacion / vidaUtilMeses) * effectiveMonths;
+
+    let newValue = costoAdquisicion - depreciacionAcumulada;
+
+    newValue = Math.round(newValue)
 
     if (newValue < valorResidual) {
         newValue = valorResidual; 
