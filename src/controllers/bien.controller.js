@@ -59,10 +59,37 @@ const updateOne = async (req, res, next) => {
         const { id } = req.params;
         const updateBien = await bienService.updateBien(id, req.body);
         res.status(200).json(updateBien);
+        
     } catch (error) {
         next(error);
     }
 };
+
+// PUT /api/bien/alta/:id
+const alta = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const altaBien = await bienService.altaBien(id, req.body);
+        const response = { "condicion" : altaBien.condicion, "nroResolucion" : altaBien.nroResolucion, "fechaResolucion" : altaBien.fechaResolucion}
+        res.status(200).json(response);
+        console.log("2:", req.body)
+    } catch (error) {
+        next(error);
+    }
+}
+
+// PUT /api/bien/baja/id
+const baja = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const bajaBien = await bienService.bajaBien(id, req.body);
+        const response = { "condicion" : bajaBien.condicion, "nroResolucion" : bajaBien.nroResolucion, "fechaResolucion" : bajaBien.fechaResolucion}
+        res.status(200).json(response);
+        console.log("2:", req.body)
+    } catch (error) {
+        next(error);
+    }
+}
 
 // POST /api/bien/:id
 const softDelete = async (req, res, next) => {
@@ -93,6 +120,8 @@ export default {
     findOneById,
     createOne,
     updateOne,
+    alta,
+    baja,
     softDelete,
     hardDelete,
 }

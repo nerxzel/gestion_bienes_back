@@ -119,6 +119,81 @@ const updateBien = async (id, data) => {
     return updatedBien
 }
 
+const nextResolucion = async () => {
+
+    const lastResolucion = await prisma.bien.findFirst({
+        where: { nroResolucion: { not: null } },
+        orderBy: { nroResolucion: 'desc'  }
+    });
+
+    if (!lastResolucion) {
+        return "001"
+    }
+
+   const currentResolucion = parseInt(lastResolucion.nroResolucion, 10);
+   const sum = currentResolucion + 1;
+   const newResolucion = sum.toString().padStart(3, "0");
+
+    return newResolucion
+
+}
+
+const altaBien = async (id, data) => {
+    const newResolucion = await nextResolucion()
+    const currentDate = new Date();
+    const idInt = parseAndValidateId(id)
+
+    const bienExists = await prisma.bien.findUnique({
+        where: { id: idInt }
+    })
+
+    console.log("1", data)
+
+    if (!bienExists) {
+        throw new NotFoundError("Este bien no existe")
+    } 
+
+    const altaBien = await prisma.bien.update({
+        where: {id: idInt},
+        data: {
+            ...data,
+            nroResolucion: newResolucion,
+            fechaResolucion: currentDate,
+            condicion: "Alta"
+        },
+    })
+
+    return altaBien
+
+}
+
+const bajaBien = async (id, data) => {
+    const newResolucion = await nextResolucion()
+    const currentDate = new Date();
+    const idInt = parseAndValidateId(id)
+
+    const bienExists = await prisma.bien.findUnique({
+        where: { id: idInt }
+    })
+
+    if (!bienExists) {
+        throw new NotFoundError("Este bien no existe")
+    } 
+
+    const bajaBien = await prisma.bien.update({
+        where: {id: idInt},
+        data: {
+            ...data,
+            nroResolucion: newResolucion,
+            fechaResolucion: currentDate,
+            condicion: "Baja"
+        },
+    })
+
+    return bajaBien
+
+}
+
 const softDeleteBien = async (id) => {
     const idInt = parseAndValidateId(id)
 
@@ -163,6 +238,8 @@ export default {
     getGridBienes,
     getBienbyId,
     updateBien,
+    altaBien,
+    bajaBien,
     softDeleteBien,
     hardDeleteBien,
 }
