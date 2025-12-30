@@ -13,6 +13,7 @@ router.get("/", authenticateToken, bienController.findAll);
 router.get("/:id", authenticateToken, bienController.findOneById);
 router.post("/", authenticateToken, validateRequest(bienSchemaCreate), bienController.createOne);
 router.post("/:id", authenticateToken, bienController.softDelete);
+router.put("/depreciar", authenticateToken, bienController.depreciarTodos);
 router.put("/alta/:id", authenticateToken, bienController.alta);
 router.put("/baja/:id", authenticateToken, bienController.baja);
 router.put("/:id", authenticateToken, validateRequest(bienSchemaUpdate), bienController.updateOne);

@@ -90,6 +90,20 @@ const baja = async (req, res, next) => {
     }
 }
 
+// PUT /api/bien/depreciar
+const depreciarTodos = async (req, res, next) => {
+    try {
+        const depreciatedBienes = await bienService.depreciarBienes();
+        
+        res.status(200).json({
+            message: "¡Depreciación masiva lista!",
+            bienesAfectados: depreciatedBienes.lenght,
+        }) 
+    } catch (error) {
+        next(error);
+    }
+}
+
 // POST /api/bien/:id
 const softDelete = async (req, res, next) => {
     try {
@@ -121,6 +135,7 @@ export default {
     updateOne,
     alta,
     baja,
+    depreciarTodos,
     softDelete,
     hardDelete,
 }
