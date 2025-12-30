@@ -72,7 +72,6 @@ const alta = async (req, res, next) => {
         const altaBien = await bienService.altaBien(id, req.body);
         const response = { "condicion" : altaBien.condicion, "nroResolucion" : altaBien.nroResolucion, "fechaResolucion" : altaBien.fechaResolucion}
         res.status(200).json(response);
-        console.log("2:", req.body)
     } catch (error) {
         next(error);
     }

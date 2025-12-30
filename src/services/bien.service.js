@@ -147,8 +147,6 @@ const altaBien = async (id, data) => {
         where: { id: idInt }
     })
 
-    console.log("1", data)
-
     if (!bienExists) {
         throw new NotFoundError("Este bien no existe")
     } 
