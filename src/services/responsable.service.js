@@ -82,6 +82,8 @@ const updateResponsable = async (id, data) => {
     return responsable;
 }
 
+
+
 export default {
     createResponsable,
     getAllResponsables,

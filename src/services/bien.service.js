@@ -144,6 +144,8 @@ const altaBien = async (id, data) => {
         where: { id: idInt }
     })
 
+    console.log("Mira, esta fecha:",currentDate)
+
     if (!bienExists) {
         throw new NotFoundError("Este bien no existe")
     } 
@@ -275,7 +277,7 @@ const hardDeleteBien = async (id) => {
 
     if (!bienExist) {
         throw new NotFoundError("Este bien no existe");
-    }
+    } 
 
     const deletedBien = await prisma.bien.delete({
         where: { id: idInt }
@@ -284,7 +286,54 @@ const hardDeleteBien = async (id) => {
     return deletedBien;
 }
 
-const bienesExcel = async (data) => {
+const bienesExcel = async () => {
+
+    const bienes = await prisma.bien.findMany({ 
+        include: {
+            unidadMedida: true,
+            responsable: true,
+            ubicacion: true,
+            marca: true,
+            modelo: true,
+            grupo: true,
+            clase: true,
+            subclase: true
+        },
+        orderBy: { id: 'asc' }
+    });
+
+    const plainBienes = bienes.map(bien => ({
+        id: bien.id,
+        codigoInventario: bien.codigoInventario,
+        nombre: bien.nombre,
+        descripcionLarga: bien.descripcionLarga,
+        tipoObjeto: bien.tipoObjeto,
+        condicion: bien.condicion,
+        numSerie: bien.numSerie || "Sin Info",
+        color: bien.color,
+        cantidadPieza: bien.cantidadPieza,
+        unidadMedida: bien.unidadMedida.nombre,
+        largo: bien.largo || "Sin Info",
+        alto: bien.alto || "Sin Info",
+        ancho: bien.ancho || "Sin Info",
+        responsable: bien.responsable.rut,
+        ubicacion: bien.ubicacion.nombre,
+        marca: bien.marca.nombre,
+        modelo: bien.modelo.nombre,
+        grupo: bien.grupo.nombre,
+        clase: bien.clase.nombre,
+        subclase: bien.subclase.nombre,
+        isDeleted: bien.isDeleted,
+        valor: bien.valor,
+        costoAdquisicion: bien.costoAdquisicion,
+        valorResidual: bien.valorResidual,
+        ultimaDepreciacion: bien.ultimaDepreciacion,
+        isla: bien.isla || "Sin Info",
+        fila: bien.fila || "Sin Info",
+        columna: bien.columna || "Sin Info",
+        estado: bien.estado
+    }))
+
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Reporte general bienes');
 
@@ -322,10 +371,52 @@ const bienesExcel = async (data) => {
 
   worksheet.getRow(1).font = { bold: true };
 
-  worksheet.addRows(data);
+  worksheet.addRows(plainBienes);
 
   return await workbook.xlsx.writeBuffer();
 }; 
+
+const hojaMural = async (id) => {
+    const responsableId = parseAndValidateId(id);
+
+    const responsable = await prisma.bien.findMany({
+        where: {responsableId: responsableId},
+        include: {
+            responsable: true 
+        },
+        orderBy: { id: 'asc' }
+    })
+
+    const plainDatos = responsable.map(bien => ({
+        codigoInventario: bien.codigoInventario,
+        nombre: bien.nombre,
+        descripcionLarga: bien.descripcionLarga,
+        condicion: bien.condicion,
+        cantidadPieza: bien.cantidadPieza,
+        responsable: bien.responsable.rut,
+        estado: bien.estado
+    }))
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(`Hoja_Mural_${responsableId}`);
+
+     worksheet.columns = [
+    { header: 'Código Inventario', key: 'codigoInventario', width: 30 },
+    { header: 'Descripción corta', key: 'nombre', width: 30 },
+    { header: 'Descripción larga', key: 'descripcionLarga', width: 20 },
+    { header: 'Condicion', key: 'condicion', width: 15 },
+    { header: 'Cantidad Piezas', key: 'cantidadPieza', width: 15 },
+    { header: 'Responsable RUT', key: 'responsable', width: 15 },
+    { header: 'Estado', key: 'estado', width: 15 },
+  ];
+
+    worksheet.getRow(1).font = { bold: true };
+
+    worksheet.addRows(plainDatos);
+
+    return await workbook.xlsx.writeBuffer();
+
+}
 
 export default {
     nextCodInv,
@@ -341,4 +432,5 @@ export default {
     softDeleteBien,
     hardDeleteBien,
     bienesExcel,
+    hojaMural,
 }
