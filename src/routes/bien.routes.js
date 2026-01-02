@@ -10,6 +10,7 @@ const router = Router();
 router.get("/test", authenticateToken, bienController.test);
 router.get("/grid", authenticateToken, bienController.getGrid);
 router.get("/", authenticateToken, bienController.findAll);
+router.get("/excel", authenticateToken, bienController.bienExcel);
 router.get("/:id", authenticateToken, bienController.findOneById);
 router.post("/", authenticateToken, validateRequest(bienSchemaCreate), bienController.createOne);
 router.post("/:id", authenticateToken, bienController.softDelete);

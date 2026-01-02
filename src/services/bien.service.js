@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import ExcelJS from 'exceljs';
 import { parseAndValidateId } from "../utils/utility-methods.js";
 import { NotFoundError, ConflictError } from "../utils/app-error.js"
 
@@ -58,7 +59,6 @@ const getBienbyId = async (id) => {
 }
 
 const nextCodInv = async () => {
-
     const lastCodInv = await prisma.bien.findFirst({
         orderBy: { id: 'desc'  }
     });
@@ -76,7 +76,6 @@ const nextCodInv = async () => {
     const newCodInv = stringPart + ("-") + padded
 
     return newCodInv
-
 }
 
 const createBien = async (data) => {
@@ -120,7 +119,6 @@ const updateBien = async (id, data) => {
 }
 
 const nextResolucion = async () => {
-
     const lastResolucion = await prisma.bien.findFirst({
         where: { nroResolucion: { not: null } },
         orderBy: { nroResolucion: 'desc'  }
@@ -130,12 +128,11 @@ const nextResolucion = async () => {
         return "001"
     }
 
-   const currentResolucion = parseInt(lastResolucion.nroResolucion, 10);
-   const sum = currentResolucion + 1;
-   const newResolucion = sum.toString().padStart(3, "0");
+    const currentResolucion = parseInt(lastResolucion.nroResolucion, 10);
+    const sum = currentResolucion + 1;
+    const newResolucion = sum.toString().padStart(3, "0");
 
     return newResolucion
-
 }
 
 const altaBien = async (id, data) => {
@@ -162,7 +159,6 @@ const altaBien = async (id, data) => {
     })
 
     return altaBien
-
 }
 
 const bajaBien = async (id, data) => {
@@ -189,7 +185,6 @@ const bajaBien = async (id, data) => {
     })
 
     return bajaBien
-
 }
 
 const depreciarBien = async (id, data) => {
@@ -205,10 +200,8 @@ const depreciarBien = async (id, data) => {
     });
 
     const { grupo, costoAdquisicion, valorResidual, fechaIngreso} = depreciationData
-    const vidaUtil = grupo.vidaUtil
-
-
-    const monthlyDepreciation =  Math.floor((costoAdquisicion - valorResidual) / (vidaUtil * 12))
+    const vidaUtilAnhos = grupo.vidaUtil
+    const vidaUtilMeses = vidaUtilAnhos * 12
 
     const currentDate = new Date()
     const fechaIngresoCalc = new Date(fechaIngreso)
@@ -217,7 +210,16 @@ const depreciarBien = async (id, data) => {
     months -= fechaIngresoCalc.getMonth();
     months += currentDate.getMonth();
 
-    let newValue = costoAdquisicion - (months * monthlyDepreciation);
+    if (months < 0) months = 0;
+
+    const effectiveMonths = Math.min(months, vidaUtilMeses)
+
+    const depreciacion = costoAdquisicion - valorResidual;
+    const depreciacionAcumulada = (depreciacion / vidaUtilMeses) * effectiveMonths;
+
+    let newValue = costoAdquisicion - depreciacionAcumulada;
+
+    newValue = Math.round(newValue)
 
     if (newValue < valorResidual) {
         newValue = valorResidual; 
@@ -282,6 +284,49 @@ const hardDeleteBien = async (id) => {
     return deletedBien;
 }
 
+const bienesExcel = async (data) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Reporte general bienes');
+
+  worksheet.columns = [
+    { header: 'ID', key: 'id', width: 25 },
+    { header: 'Código Inventario', key: 'codigoInventario', width: 30 },
+    { header: 'Descripción corta', key: 'nombre', width: 30 },
+    { header: 'Descripción larga', key: 'descripcionLarga', width: 20 },
+    { header: 'Tipo Objeto', key: 'tipoObjeto', width: 15 },
+    { header: 'Condicion', key: 'condicion', width: 15 },
+    { header: 'Numero de Serie', key: 'numSerie', width: 15 },
+    { header: 'Color', key: 'color', width: 15 },
+    { header: 'Cantidad Piezas', key: 'cantidadPieza', width: 15 },
+    { header: 'Unidad de Medida', key: 'unidadMedida', width: 15 },
+    { header: 'Largo', key: 'largo', width: 15 },
+    { header: 'Alto', key: 'alto', width: 15 },
+    { header: 'Ancho', key: 'ancho', width: 15 },
+    { header: 'Responsable RUT', key: 'responsable', width: 15 },
+    { header: 'Ubicacion', key: 'ubicacion', width: 15 },
+    { header: 'Marca', key: 'marca', width: 15 },
+    { header: 'Modelo', key: 'modelo', width: 15 },
+    { header: 'Grupo', key: 'grupo', width: 15 },
+    { header: 'Clase', key: 'clase', width: 15 },
+    { header: 'Subclase', key: 'subclase', width: 15 },
+    { header: 'Eliminado', key: 'isDeleted', width: 15 },
+    { header: 'Valor', key: 'valor', width: 15 },
+    { header: 'Costo Adquisicion', key: 'costoAdquisicion', width: 15 },
+    { header: 'Valor Residual', key: 'valorResidual', width: 15 },
+    { header: 'Ultima depreciacion', key: 'ultimaDepreciacion', width: 15 },
+    { header: 'Isla', key: 'isla', width: 15 },
+    { header: 'Fila', key: 'fila', width: 15 },
+    { header: 'Columna', key: 'columna', width: 15 },
+    { header: 'Estado', key: 'estado', width: 15 },
+  ];
+
+  worksheet.getRow(1).font = { bold: true };
+
+  worksheet.addRows(data);
+
+  return await workbook.xlsx.writeBuffer();
+}; 
+
 export default {
     nextCodInv,
     createBien,
@@ -295,4 +340,5 @@ export default {
     depreciarBienes,
     softDeleteBien,
     hardDeleteBien,
+    bienesExcel,
 }
