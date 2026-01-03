@@ -1,24 +1,29 @@
 import { Router } from "express";
 import bienController from "../controllers/bien.controller.js";
 import { validateRequest } from "../middlewares/validate-request.js";
-import authenticateToken from "../middlewares/auth.js"
+import authenticateToken from "../middlewares/auth.js";
+import { restrictDemoUser } from "../middlewares/demo.js";
 import { bienSchemaCreate, bienSchemaUpdate } from "../validators/bien.schema.js";
 
 
 const router = Router();
 
-router.get("/test", authenticateToken, bienController.test);
-router.get("/grid", authenticateToken, bienController.getGrid);
-router.get("/", authenticateToken, bienController.findAll);
-router.get("/excel", authenticateToken, bienController.bienExcel);
-router.get("/:id", authenticateToken, bienController.findOneById);
-router.post("/", authenticateToken, validateRequest(bienSchemaCreate), bienController.createOne);
-router.post("/:id", authenticateToken, bienController.softDelete);
-router.put("/depreciar", authenticateToken, bienController.depreciarTodos);
-router.put("/alta/:id", authenticateToken, bienController.alta);
-router.put("/baja/:id", authenticateToken, bienController.baja);
-router.put("/:id", authenticateToken, validateRequest(bienSchemaUpdate), bienController.updateOne);
-router.delete("/hardDelete/:id", authenticateToken, bienController.hardDelete);
+router.use(authenticateToken)
+router.use(restrictDemoUser)
+
+router.get("/test", bienController.test);
+router.get("/grid", bienController.getGrid);
+router.get("/", bienController.findAll);
+router.get("/excel", bienController.bienExcel);
+router.get("/responsable/:id", bienController.hojaMuralC );
+router.get("/:id", bienController.findOneById);
+router.post("/",  validateRequest(bienSchemaCreate), bienController.createOne);
+router.post("/:id",  bienController.softDelete);
+router.put("/depreciar",  bienController.depreciarTodos);
+router.put("/alta/:id",  bienController.alta);
+router.put("/baja/:id",  bienController.baja);
+router.put("/:id", validateRequest(bienSchemaUpdate), bienController.updateOne);
+router.delete("/hardDelete/:id",  bienController.hardDelete);
 
 
 export default router;

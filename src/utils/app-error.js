@@ -25,6 +25,12 @@ class ForbiddenError extends AppError {
     }
 }
 
+class DemoError extends AppError {
+    constructor(message = 'Acción no disponible en modo Demo.') {
+        super(message, 403);
+    }
+}
+
 class NotFoundError extends AppError {
     constructor(message = 'Recurso no encontrado') {
         super(message, 404);
@@ -57,5 +63,6 @@ export {
     NotFoundError,
     ConflictError,
     ValidationError,
-    InternalServerError
+    InternalServerError,
+    DemoError
 };

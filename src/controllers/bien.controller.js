@@ -128,44 +128,29 @@ const hardDelete = async (req, res, next) => {
 // GET /api/bien/excel
 const bienExcel = async (req, res, next) => {
   try {
-    const bienes = await prisma.bienes.findMany({
-      select: {
-        id: true,
-        codigoInventario: true,
-        nombre: true,
-        descripcionLarga: true,
-        tipoObjeto: true,
-        condicion: true,
-        numSerie: true,
-        color: true,
-        cantidadPieza: true,
-        unidadMedida: { select: { nombre: true } },
-        largo: true,
-        alto: true,
-        ancho: true,
-        responsable: { select: { rut: true } },
-        ubicacion: { select: { nombre: true } },
-        marca: { select: { nombre: true } },
-        modelo: { select: { nombre: true } },
-        grupo: { select: { nombre: true } },
-        clase: { select: { nombre: true } },
-        subclase: { select: { nombre: true } },
-        isDeleted: true,
-        valor: true,
-        costoAdquisicion: true,
-        valorResidual: true,
-        ultimaDepreciacion: true,
-        isla: true,
-        fila: true,
-        columna: true,
-        estado: true
-      }
-    });
 
-    const buffer = await bienService.bienesExcel(bienes);
+    const buffer = await bienService.bienesExcel();
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=Reporte_General_Bienes.xlsx');
+    res.setHeader('Content-Disposition', 'attachment; filename=Reporte_General_Bienesssss.xlsx');
+    
+    res.send(buffer);
+
+  } catch (error) {
+    next(error)
+  }
+}; 
+
+// GET /api/bien/responsable/:id
+const hojaMuralC = async (req, res, next) => {
+  try {
+
+    const { id } = req.params
+
+    const buffer = await bienService.hojaMural(id);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=Reporte_General_Bienesssss.xlsx');
     
     res.send(buffer);
 
@@ -186,5 +171,6 @@ export default {
     depreciarTodos,
     softDelete,
     hardDelete,
-    bienExcel
+    bienExcel,
+    hojaMuralC
 }
