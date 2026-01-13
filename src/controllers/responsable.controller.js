@@ -40,8 +40,9 @@ const createOne = async (req, res, next) => {
 // PUT /api/responsable/:id
 const updateOne = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params
         const updatedResponsable = await responsableService.updateResponsable(id, req.body);
+    
         res.status(200).json(updatedResponsable);
     } catch (error) {
         next(error);
