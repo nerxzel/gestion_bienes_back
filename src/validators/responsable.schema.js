@@ -10,8 +10,8 @@ export const responsableSchemaCreate = z.object({
         .min(1, "El nombre no puede estar vacío")
         .max(50, "El nombre no puede tener más de 50 caracteres")
         .transform((value) => {
-            return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-        }),
+             return value.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    }),
 
     cargo: z.string({
         required_error: "El cargo es obligatorio",
